@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KeepAPP</title>
+  <title>KeepAPP Men</title>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     :root {
@@ -25,7 +25,7 @@
       padding: 0;
     }
 
-    /* Header y Menú Hamburguesa */
+    /* Header */
     header {
       background: var(--card-bg);
       display: flex;
@@ -45,7 +45,6 @@
       font-size: 1.5rem;
       cursor: pointer;
       padding: 0;
-      line-height: 1;
     }
 
     .header-title {
@@ -114,6 +113,39 @@
     .section-view { display: none; }
     .section-view.active { display: block; }
 
+    /* Componentes de Tarjetas */
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Estilos Tareas */
+    .task-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 4px solid var(--accent);
+    }
+    .task-info h3 { margin: 0 0 6px 0; font-size: 1rem; }
+    .badges { display: flex; gap: 6px; flex-wrap: wrap; }
+    .badge {
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-dim);
+    }
+    .score-tag {
+      text-align: right;
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #4ade80;
+    }
+    .score-label { font-size: 0.65rem; color: var(--text-dim); display: block; }
+
     /* Sub-Navegación BBM (Tabs) */
     .bbm-tabs {
       display: flex;
@@ -144,7 +176,6 @@
     .bbm-subview { display: none; }
     .bbm-subview.active { display: block; }
 
-    /* Tarjetas y Controles */
     .day-select {
       width: 100%;
       padding: 10px;
@@ -154,14 +185,6 @@
       border-radius: 8px;
       font-size: 1rem;
       margin-bottom: 16px;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 12px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
     }
 
     .card-title { margin: 0 0 6px 0; font-size: 1rem; color: var(--text); }
@@ -190,7 +213,7 @@
 
   <header>
     <button class="menu-btn" onclick="toggleMenu()">☰</button>
-    <h1 class="header-title" id="currentSectionTitle">🏋️ BBM (Gym)</h1>
+    <h1 class="header-title" id="currentSectionTitle">📋 Tareas</h1>
     <div style="width: 24px;"></div>
   </header>
 
@@ -198,25 +221,29 @@
   <nav class="drawer" id="drawer">
     <div class="drawer-header">📌 Menú principal</div>
     <ul class="drawer-menu">
-      <li><a href="#" onclick="navigate('estudio', 'Estudio')">Estudio</a></li>
-      <li><a href="#" onclick="navigate('tareas', 'Tareas')">Tareas</a></li>
-      <li><a href="#" onclick="navigate('compras', 'Compras')">Compras</a></li>
-      <li><a href="#" onclick="navigate('gastos', 'Gastos')">Gastos</a></li>
-      <li><a href="#" id="link-bbm" class="active" onclick="navigate('bbm', 'BBM (Gym)')">BBM (Gym)</a></li>
-      <li><a href="#" onclick="navigate('links', 'Links')">Links</a></li>
+      <li><a href="#" onclick="navigate('estudio', '📚 Estudio')">📚 Estudio</a></li>
+      <li><a href="#" id="link-tareas" class="active" onclick="navigate('tareas', '📋 Tareas')">📋 Tareas</a></li>
+      <li><a href="#" onclick="navigate('compras', '🛒 Compras')">🛒 Compras</a></li>
+      <li><a href="#" onclick="navigate('gastos', '💰 Gastos')">💰 Gastos</a></li>
+      <li><a href="#" id="link-bbm" onclick="navigate('bbm', '🏋️ BBM (Gym)')">🏋️ BBM (Gym)</a></li>
+      <li><a href="#" onclick="navigate('links', '🔗 Links')">🔗 Links</a></li>
     </ul>
   </nav>
 
   <main>
+    <!-- Módulo Tareas -->
+    <section id="view-tareas" class="section-view active">
+      <div id="taskList">Cargando tareas...</div>
+    </section>
+
     <!-- Módulo BBM -->
-    <section id="view-bbm" class="section-view active">
+    <section id="view-bbm" class="section-view">
       <div class="bbm-tabs">
         <button class="bbm-tab-btn active" onclick="switchBBMTab('ejercicios')">Ejercicios</button>
         <button class="bbm-tab-btn" onclick="switchBBMTab('records')">Récords</button>
         <button class="bbm-tab-btn" onclick="switchBBMTab('medidas')">Medidas</button>
       </div>
 
-      <!-- Sub-vista 1: Ejercicios -->
       <div id="bbm-ejercicios" class="bbm-subview active">
         <select id="daySelector" class="day-select" onchange="renderizarEjerciciosPorDia()">
           <option value="Lunes">Lunes</option>
@@ -230,19 +257,17 @@
         <div id="exerciseList">Cargando ejercicios...</div>
       </div>
 
-      <!-- Sub-vista 2: Récords -->
       <div id="bbm-records" class="bbm-subview">
         <div id="recordsList">Cargando récords...</div>
       </div>
 
-      <!-- Sub-vista 3: Medidas -->
       <div id="bbm-medidas" class="bbm-subview">
         <div id="medidasList">Cargando medidas...</div>
       </div>
     </section>
 
+    <!-- Módulos Pendientes -->
     <section id="view-estudio" class="section-view"><p>Módulo de Estudio...</p></section>
-    <section id="view-tareas" class="section-view"><p>Módulo de Tareas...</p></section>
     <section id="view-compras" class="section-view"><p>Módulo de Compras...</p></section>
     <section id="view-gastos" class="section-view"><p>Módulo de Gastos...</p></section>
     <section id="view-links" class="section-view"><p>Módulo de Links...</p></section>
@@ -251,14 +276,15 @@
   <script>
     const SHEET_ID = "1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw";
     
-    // URLs para cada pestaña de BBM
+    // URLs de pestañas en Google Sheets
+    const URL_TAREAS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=tareas`;
     const URL_RUTINA = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=bbm_rutina`;
     const URL_RECORDS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=bbm_records`;
     const URL_MEDIDAS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=bbm_medidas`;
 
     let datosRutina = [];
 
-    // Menú Hamburguesa
+    // Menú Hamburguesa y Navegación
     function toggleMenu() {
       document.getElementById("drawer").classList.toggle("active");
       document.getElementById("overlay").classList.toggle("active");
@@ -270,10 +296,14 @@
 
       document.getElementById(`view-${sectionId}`).classList.add("active");
       document.getElementById("currentSectionTitle").innerText = titleText;
+      
+      const activeLink = document.getElementById(`link-${sectionId}`);
+      if (activeLink) activeLink.classList.add("active");
+
       toggleMenu();
     }
 
-    // Sub-navegación BBM Tabs
+    // Sub-navegación BBM
     function switchBBMTab(tabName) {
       document.querySelectorAll(".bbm-tab-btn").forEach(b => b.classList.remove("active"));
       document.querySelectorAll(".bbm-subview").forEach(v => v.classList.remove("active"));
@@ -282,7 +312,72 @@
       document.getElementById(`bbm-${tabName}`).classList.add("active");
     }
 
-    // Seleccionar día actual al iniciar
+    // --- LÓGICA DE TAREAS ---
+    const VALORES = {
+      urgencia: { "Hoy": 100, "Pronto": 50, "Eventualmente": 15 },
+      importancia: { "Vital": 100, "Muy": 60, "Normal": 20 },
+      dificultad: { "Fácil": 100, "Mediano": 50, "Difícil": 20 },
+      tiempo: { "Muy rápido": 100, "Poco tiempo": 70, "Más de un día": 40, "Mucho": 10 },
+      costo: { "Gratis": 100, "Poco": 80, "Barato": 60, "Caro": 30, "Muy caro": 10 }
+    };
+
+    function calcularPrioridad(t) {
+      const u = VALORES.urgencia[t.Urgencia] || 0;
+      const i = VALORES.importancia[t.Importancia] || 0;
+      const d = VALORES.dificultad[t.Dificultad] || 0;
+      const ti = VALORES.tiempo[t.Tiempo] || 0;
+      const c = VALORES.costo[t.Costo] || 0;
+
+      return Math.round((u * 0.35) + (i * 0.30) + (d * 0.15) + (ti * 0.10) + (c * 0.10));
+    }
+
+    function cargarTareas() {
+      const url = `${URL_TAREAS}&_nocache=${new Date().getTime()}`;
+      Papa.parse(url, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          const tareas = results.data
+            .filter(t => t.Estado !== "Terminada")
+            .map(t => ({ ...t, score: calcularPrioridad(t) }))
+            .sort((a, b) => b.score - a.score);
+
+          renderizarTareas(tareas);
+        }
+      });
+    }
+
+    function renderizarTareas(lista) {
+      const contenedor = document.getElementById("taskList");
+      contenedor.innerHTML = "";
+
+      if (lista.length === 0) {
+        contenedor.innerHTML = "<p style='color: var(--text-dim); text-align: center;'>No hay tareas pendientes.</p>";
+        return;
+      }
+
+      lista.forEach(t => {
+        contenedor.innerHTML += `
+          <div class="card task-card">
+            <div class="task-info">
+              <h3>${t.Tarea}</h3>
+              <div class="badges">
+                <span class="badge">⌛ ${t.Urgencia}</span>
+                <span class="badge">🔥 ${t.Importancia}</span>
+                <span class="badge">📌 ${t.Estado}</span>
+              </div>
+            </div>
+            <div class="score-tag">
+              ${t.score}
+              <span class="score-label">PRIORIDAD</span>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // --- LÓGICA DE BBM (GYM) ---
     function setDiaActual() {
       const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
       const hoy = dias[new Date().getDay()];
@@ -290,7 +385,6 @@
       if (select) select.value = hoy;
     }
 
-    // Cargar Rutinas
     function cargarRutina() {
       const url = `${URL_RUTINA}&_nocache=${new Date().getTime()}`;
       Papa.parse(url, {
@@ -312,7 +406,7 @@
       const ejercicios = datosRutina.filter(e => e.Dia === diaSeleccionado);
 
       if (ejercicios.length === 0) {
-        contenedor.innerHTML = "<p style='color: var(--text-dim); text-align: center;'>No hay ejercicios programados para este día.</p>";
+        contenedor.innerHTML = "<p style='color: var(--text-dim); text-align: center;'>No hay ejercicios para este día.</p>";
         return;
       }
 
@@ -327,7 +421,6 @@
       });
     }
 
-    // Cargar Récords
     function cargarRecords() {
       const url = `${URL_RECORDS}&_nocache=${new Date().getTime()}`;
       Papa.parse(url, {
@@ -338,7 +431,6 @@
           const contenedor = document.getElementById("recordsList");
           contenedor.innerHTML = "";
 
-          // Agrupar récords por Ejercicio
           const agrupados = {};
           results.data.forEach(r => {
             if (!agrupados[r.Ejercicio]) agrupados[r.Ejercicio] = {};
@@ -371,7 +463,6 @@
       });
     }
 
-    // Cargar Medidas
     function cargarMedidas() {
       const url = `${URL_MEDIDAS}&_nocache=${new Date().getTime()}`;
       Papa.parse(url, {
@@ -398,7 +489,8 @@
       });
     }
 
-    // Inicialización
+    // Inicialización global
+    cargarTareas();
     setDiaActual();
     cargarRutina();
     cargarRecords();
