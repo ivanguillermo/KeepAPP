@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Mi App - Tareas</title>
+  <title>Mi App Personal</title>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     :root {
@@ -12,22 +12,127 @@
       --accent: #38bdf8;
       --text: #f8fafc;
       --text-dim: #94a3b8;
+      --drawer-bg: #182234;
     }
+
+    * { box-sizing: border-box; }
+
     body {
       background-color: var(--bg);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       margin: 0;
-      padding: 16px;
-      padding-bottom: 80px;
+      padding: 0;
     }
-    h2 { font-size: 1.4rem; margin-bottom: 16px; color: var(--accent); }
+
+    /* Header y Menú Hamburguesa */
+    header {
+      background: var(--card-bg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .menu-btn {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .header-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--accent);
+      margin: 0;
+    }
+
+    /* Drawer / Menú Desplegable Sidebar */
+    .drawer-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 200;
+    }
+
+    .drawer-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0; left: -280px;
+      width: 280px; height: 100%;
+      background: var(--drawer-bg);
+      z-index: 201;
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 0;
+    }
+
+    .drawer.active {
+      transform: translateX(280px);
+    }
+
+    .drawer-header {
+      padding: 0 20px 20px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--accent);
+    }
+
+    .drawer-menu {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0 0;
+    }
+
+    .drawer-menu li a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 1rem;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .drawer-menu li a.active, .drawer-menu li a:hover {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border-left: 4px solid var(--accent);
+    }
+
+    /* Contenido Principal */
+    main {
+      padding: 16px;
+      padding-bottom: 40px;
+    }
+
+    .section-view { display: none; }
+    .section-view.active { display: block; }
+
+    /* Estilos de Tareas */
     .task-card {
       background: var(--card-bg);
       border-radius: 12px;
       padding: 14px;
       margin-bottom: 12px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -53,12 +158,74 @@
 </head>
 <body>
 
-  <h2>📋 Mis Tareas Priorizadas</h2>
-  <div id="taskList">Cargando tareas...</div>
+  <header>
+    <button class="menu-btn" onclick="toggleMenu()">☰</button>
+    <h1 class="header-title" id="currentSectionTitle">Tareas</h1>
+    <div style="width: 24px;"></div> </header>
+
+  <div class="drawer-overlay" id="overlay" onclick="toggleMenu()"></div>
+  <nav class="drawer" id="drawer">
+    <div class="drawer-header">📌 Menú principal</div>
+    <ul class="drawer-menu">
+      <li><a href="#" onclick="navigate('estudio', '📚 Estudio')">📚 Estudio</a></li>
+      <li><a href="#" id="link-tareas" class="active" onclick="navigate('tareas', '📋 Tareas')">📋 Tareas</a></li>
+      <li><a href="#" onclick="navigate('compras', '🛒 Compras')">🛒 Compras</a></li>
+      <li><a href="#" onclick="navigate('gastos', '💰 Gastos')">💰 Gastos</a></li>
+      <li><a href="#" onclick="navigate('bbm', '🏋️ BBM (Gym)')">🏋️ BBM (Gym)</a></li>
+      <li><a href="#" onclick="navigate('links', '🔗 Links')">🔗 Links</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section id="view-estudio" class="section-view">
+      <p>Módulo de Estudio en construcción...</p>
+    </section>
+
+    <section id="view-tareas" class="section-view active">
+      <div id="taskList">Cargando tareas...</div>
+    </section>
+
+    <section id="view-compras" class="section-view">
+      <p>Módulo de Compras en construcción...</p>
+    </section>
+
+    <section id="view-gastos" class="section-view">
+      <p>Módulo de Gastos en construcción...</p>
+    </section>
+
+    <section id="view-bbm" class="section-view">
+      <p>Módulo de Gimnasio (BBM) en construcción...</p>
+    </section>
+
+    <section id="view-links" class="section-view">
+      <p>Módulo de Links útiles en construcción...</p>
+    </section>
+  </main>
 
   <script>
-    const CSV_URL = "1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw";
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQeIhQo52yscN4YO2Ad2YQdMMm-aQsrW0XYwHVCEcpWnsG2ggEKOE1onSilIEnHp3UMx6MM6A_aR382/pub?gid=2093508091&single=true&output=csv";
 
+    // Lógica del Menú Hamburguesa
+    function toggleMenu() {
+      document.getElementById("drawer").classList.toggle("active");
+      document.getElementById("overlay").classList.toggle("active");
+    }
+
+    function navigate(sectionId, titleText) {
+      // Ocultar todas las secciones
+      document.querySelectorAll(".section-view").forEach(s => s.classList.remove("active"));
+      // Desmarcar enlaces activos
+      document.querySelectorAll(".drawer-menu a").forEach(a => a.classList.remove("active"));
+
+      // Activar sección elegida
+      document.getElementById(`view-${sectionId}`).classList.add("active");
+      document.getElementById("currentSectionTitle").innerText = titleText;
+
+      // Cerrar Menú
+      toggleMenu();
+    }
+
+    // Algoritmo de Tareas
     const VALORES = {
       urgencia: { "Hoy": 100, "Pronto": 50, "Eventualmente": 15 },
       importancia: { "Vital": 100, "Muy": 60, "Normal": 20 },
@@ -86,9 +253,9 @@
         skipEmptyLines: true,
         complete: function(results) {
           const tareas = results.data
-            .filter(t => t.Estado !== "Terminada") // Ocultar completadas
+            .filter(t => t.Estado !== "Terminada")
             .map(t => ({ ...t, score: calcularPrioridad(t) }))
-            .sort((a, b) => b.score - a.score); // Ordenar mayor a menor prioridad
+            .sort((a, b) => b.score - a.score);
 
           renderizarTareas(tareas);
         }
