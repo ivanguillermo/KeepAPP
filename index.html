@@ -2,151 +2,198 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>App Personal</title>
-  <link rel="stylesheet" href="keepapp.css">
-  <!-- Librería para procesar CSV del Sheet -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KeepApp</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
 
-  <!-- Header Fijo -->
-  <header>
-    <button class="menu-btn" onclick="toggleMenu()">☰</button>
-    <h1 class="header-title" id="currentSectionTitle">🛒 Compras</h1>
-    <div style="width: 24px;"></div>
+  <!-- Top Navigation Bar -->
+  <header class="top-app-bar">
+    <button class="icon-button" id="btn-menu" aria-label="Abrir menú">
+      <span class="material-icons">menu</span>
+    </button>
+    <h1 class="top-bar-title" id="page-title">Compras</h1>
   </header>
 
-  <!-- Drawer / Menú Lateral -->
-  <div class="drawer-overlay" id="overlay" onclick="toggleMenu()"></div>
-  <nav class="drawer" id="drawer">
-    <div class="drawer-header">Menú Principal</div>
-    <ul class="drawer-menu">
-      <li><a href="#" id="link-compras" class="active" onclick="navigate('compras', 'Compras')">Compras</a></li>
-      <li><a href="#" id="link-tareas" onclick="navigate('tareas', 'Tareas')">Tareas</a></li>
-      <li><a href="#" id="link-bbm" onclick="navigate('bbm', 'BBM')">BBM</a></li>
-      <li><a href="#" id="link-estudio" onclick="navigate('estudio', 'Estudio')">Estudio</a></li>
-      <li><a href="#" id="link-goals" onclick="navigate('gastos', 'Gastos')">Gastos</a></li>
-      <li><a href="#" id="link-gastos" onclick="navigate('goals', 'Goals')">Goals</a></li>
-      <li><a href="#" id="link-links" onclick="navigate('links', 'Links')">Links</a></li>
-    </ul>
-  </nav>
+  <!-- Navigation Drawer (Menú Lateral) -->
+  <aside class="drawer" id="drawer">
+    <div class="drawer-header">
+      <h2>Navegación</h2>
+    </div>
+    <nav class="drawer-content">
+      <a href="#" class="drawer-item active" id="link-compras" onclick="navigate('compras', 'Compras')">
+        <span class="material-icons">shopping_cart</span> Compras
+      </a>
+      <a href="#" class="drawer-item" id="link-tareas" onclick="navigate('tareas', 'Tareas')">
+        <span class="material-icons">check_box</span> Tareas
+      </a>
+      <a href="#" class="drawer-item" id="link-bbm" onclick="navigate('bbm', 'BBM Training')">
+        <span class="material-icons">fitness_center</span> BBM
+      </a>
+      <a href="#" class="drawer-item" id="link-estudio" onclick="navigate('estudio', 'Estudio (Benkyou)')">
+        <span class="material-icons">school</span> Estudio
+      </a>
+      <a href="#" class="drawer-item" id="link-gastos" onclick="navigate('gastos', 'Gastos')">
+        <span class="material-icons">attach_money</span> Gastos
+      </a>
+      <a href="#" class="drawer-item" id="link-goals" onclick="navigate('goals', 'Goals')">
+        <span class="material-icons">flag</span> Goals
+      </a>
+      <a href="#" class="drawer-item" id="link-links" onclick="navigate('links', 'Links')">
+        <span class="material-icons">link</span> Links
+      </a>
+    </nav>
+  </aside>
 
-  <!-- Contenedor Principal de Vistas -->
-  <main>
+  <!-- Overlay para menú en móviles -->
+  <div class="drawer-overlay" id="drawer-overlay"></div>
 
-    <!-- 1. MÓDULO COMPRAS -->
-    <section id="view-compras" class="section-view active">
-      <div class="stats-grid">
-        <div class="stat-card">
-          <span class="stat-val" id="countAgotado">0</span>
-          <span class="stat-lbl">Agotados</span>
+  <!-- Main Content Area -->
+  <main class="content-area">
+
+    <!-- MÓDULO 1: COMPRAS -->
+    <section id="sec-compras" class="section-content active">
+      <div class="card">
+        <h3>Lista de Compras e Inventario</h3>
+        <div id="comprasContainer">Cargando compras...</div>
+      </div>
+    </section>
+
+    <!-- MÓDULO 2: TAREAS -->
+    <section id="sec-tareas" class="section-content">
+      <div class="card">
+        <h3>Gestión de Tareas y Prioridades</h3>
+        <div id="tareasContainer">Cargando tareas...</div>
+      </div>
+    </section>
+
+    <!-- MÓDULO 3: BBM TRAINING -->
+    <section id="sec-bbm" class="section-content">
+      <div class="tab-bar">
+        <button class="tab-btn active" id="tab-bbm-ejercicios" onclick="switchSubTab('bbm', 'ejercicios')">Rutina</button>
+        <button class="tab-btn" id="tab-bbm-records" onclick="switchSubTab('bbm', 'records')">Récords</button>
+        <button class="tab-btn" id="tab-bbm-medidas" onclick="switchSubTab('bbm', 'medidas')">Medidas</button>
+      </div>
+
+      <div id="bbm-sub-ejercicios" class="subtab-content active">
+        <div class="card">
+          <label for="daySelector">Día de la semana:</label>
+          <select id="daySelector" onchange="renderizarEjerciciosPorDia(this.value)">
+            <option value="Lunes">Lunes</option>
+            <option value="Martes">Martes</option>
+            <option value="Miércoles">Miércoles</option>
+            <option value="Jueves">Jueves</option>
+            <option value="Viernes">Viernes</option>
+            <option value="Sábado">Sábado</option>
+            <option value="Domingo">Domingo</option>
+          </select>
+          <div id="bbmEjerciciosContainer" class="margin-top">Cargando rutina...</div>
         </div>
-        <div class="stat-card">
-          <span class="stat-val" id="countPorAgotar">0</span>
-          <span class="stat-lbl">Por agotar</span>
+      </div>
+
+      <div id="bbm-sub-records" class="subtab-content">
+        <div class="card">
+          <h3>Mis Récords Personales</h3>
+          <div id="bbmRecordsContainer">Cargando récords...</div>
         </div>
-        <div class="stat-card">
-          <span class="stat-val" id="countSuficiente">0</span>
-          <span class="stat-lbl">Suficiente</span>
+      </div>
+
+      <div id="bbm-sub-medidas" class="subtab-content">
+        <div class="card">
+          <h3>Control de Medidas Corporales</h3>
+          <div id="bbmMedidasContainer">Cargando medidas...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MÓDULO 4: ESTUDIO (BENKYOU) -->
+    <section id="sec-estudio" class="section-content">
+      <div class="tab-bar">
+        <button class="tab-btn active" id="tab-estudio-una" onclick="switchSubTab('estudio', 'una')">UNA</button>
+        <button class="tab-btn" id="tab-estudio-uney" onclick="switchSubTab('estudio', 'uney')">UNEY</button>
+        <button class="tab-btn" id="tab-estudio-cursos" onclick="switchSubTab('estudio', 'cursos')">Cursos</button>
+      </div>
+
+      <div id="estudio-sub-una" class="subtab-content active">
+        <div class="card">
+          <h3>Materias UNA</h3>
+          <div id="estudioUnaContainer">Cargando materias UNA...</div>
         </div>
       </div>
 
-      <input type="text" id="searchCompras" class="search-input" placeholder="Buscar producto..." onkeyup="filtrarCompras()">
-
-      <div id="comprasContainer">Cargando inventario de compras...</div>
-    </section>
-
-    <!-- 2. MÓDULO TAREAS -->
-    <section id="view-tareas" class="section-view">
-      <div id="taskList">Cargando tareas...</div>
-    </section>
-
-    <!-- 3. MÓDULO BBM-->
-    <section id="view-bbm" class="section-view">
-      <!-- Pestañas internas de BBM -->
-      <div class="bbm-tabs">
-        <button class="bbm-tab-btn active" onclick="switchBBMTab('ejercicios')">Ejercicios</button>
-        <button class="bbm-tab-btn" onclick="switchBBMTab('records')">Récords</button>
-        <button class="bbm-tab-btn" onclick="switchBBMTab('medidas')">Medidas</button>
+      <div id="estudio-sub-uney" class="subtab-content">
+        <div class="card">
+          <h3>Materias UNEY</h3>
+          <div id="estudioUneyContainer">Cargando materias UNEY...</div>
+        </div>
       </div>
 
-      <!-- Subvista Ejercicios por Día -->
-      <div id="bbm-ejercicios" class="bbm-subview active">
-        <select id="daySelector" class="day-select" onchange="renderizarEjerciciosPorDia()">
-          <option value="Lunes">Lunes</option>
-          <option value="Martes">Martes</option>
-          <option value="Miércoles">Miércoles</option>
-          <option value="Jueves">Jueves</option>
-          <option value="Viernes">Viernes</option>
-          <option value="Sábado">Sábado</option>
-          <option value="Domingo">Domingo</option>
-        </select>
-        <div id="exerciseList">Cargando ejercicios...</div>
-      </div>
-
-      <!-- Subvista Récords (PRs) -->
-      <div id="bbm-records" class="bbm-subview">
-        <div id="recordsList">Cargando récords personales...</div>
-      </div>
-
-      <!-- Subvista Medidas Corporales -->
-      <div id="bbm-medidas" class="bbm-subview">
-        <div id="medidasList">Cargando historial de medidas...</div>
+      <div id="estudio-sub-cursos" class="subtab-content">
+        <div class="card">
+          <h3>Cursos Autónomos / Certificaciones</h3>
+          <div id="estudioCursosContainer">Cargando cursos...</div>
+        </div>
       </div>
     </section>
 
-     <!-- 4. MÓDULO ESTUDIO (BENKYO) -->
-    <section id="view-estudio" class="section-view">
-      <div class="bbm-tabs">
-        <button class="bbm-tab-btn estudio-tab-btn active" onclick="switchEstudioTab('UNA')">UNA</button>
-        <button class="bbm-tab-btn estudio-tab-btn" onclick="switchEstudioTab('UNEY')">UNEY</button>
-        <button class="bbm-tab-btn estudio-tab-btn" onclick="switchEstudioTab('Cursos')">Cursos</button>
-      </div    
-      <div id="estudioContainer">Cargando recursos de estudio...</div>
-    </section>
-
-    <!-- 5. MÓDULO GASTOS -->
-    <section id="view-gastos" class="section-view">
-      <div id="gastosContainer">Cargando historial de gastos...</div>
-    </section>
-
-    <!-- 6. MÓDULO GOALS -->
-    <section id="view-goals" class="section-view">
-      
-      <div class="goals-tabs-scroll">
-        <button class="bbm-tab-btn goals-tab-btn" data-tab="300" onclick="switchGoalsTab('300')">300</button>
-        <button class="bbm-tab-btn goals-tab-btn" data-tab="Julio" onclick="switchGoalsTab('Julio')">Julio</button>
-        <button class="bbm-tab-btn goals-tab-btn" data-tab="Agosto" onclick="switchGoalsTab('Agosto')">Agosto</button>
-        <button class="bbm-tab-btn goals-tab-btn active" data-tab="Septiembre" onclick="switchGoalsTab('Septiembre')">Septiembre</button>
-        <button class="bbm-tab-btn goals-tab-btn" data-tab="Octubre" onclick="switchGoalsTab('Octubre')">Octubre</button>
-        <button class="bbm-tab-btn goals-tab-btn" data-tab="Noviembre" onclick="switchGoalsTab('Noviembre')">Noviembre</button>
-        <button class="bbm-tab-btn goals-tab-btn" data-tab="Diciembre" onclick="switchGoalsTab('Diciembre')">Diciembre</button>
-        <button class="bbm-tab-btn goals-tab-btn" data-tab="Week" onclick="switchGoalsTab('Week')">Week</button>
+    <!-- MÓDULO 5: GASTOS -->
+    <section id="sec-gastos" class="section-content">
+      <div class="card">
+        <h3>Control de Gastos y Flujo</h3>
+        <div id="gastosContainer">Cargando gastos...</div>
       </div>
-    
-      <div id="goalsContainer">Cargando metas...</div>
-    
     </section>
 
-    <!-- 7. MÓDULO LINKS -->
-    <section id="view-links" class="section-view">
-      <div id="linksContainer">Cargando enlaces...</div>
+    <!-- MÓDULO 6: GOALS -->
+    <section id="sec-goals" class="section-content">
+      <div class="tab-bar">
+        <button class="tab-btn active" id="tab-goals-300" onclick="switchSubTab('goals', '300')">300</button>
+        <button class="tab-btn" id="tab-goals-monthly" onclick="switchSubTab('goals', 'monthly')">Monthly</button>
+        <button class="tab-btn" id="tab-goals-weekly" onclick="switchSubTab('goals', 'weekly')">Weekly</button>
+      </div>
+
+      <div id="goals-sub-300" class="subtab-content active">
+        <div class="card">
+          <h3>Metas 300</h3>
+          <div id="goals300Container">Cargando lista 300...</div>
+        </div>
+      </div>
+
+      <div id="goals-sub-monthly" class="subtab-content">
+        <div class="card">
+          <h3>Objetivos Mensuales</h3>
+          <div id="goalsMonthlyContainer">Cargando objetivos mensuales...</div>
+        </div>
+      </div>
+
+      <div id="goals-sub-weekly" class="subtab-content">
+        <div class="card">
+          <h3>Plan Semanal</h3>
+          <div id="goalsWeeklyContainer">Cargando plan semanal...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MÓDULO 7: LINKS -->
+    <section id="sec-links" class="section-content">
+      <div class="card">
+        <h3>Enlaces y Marcadores</h3>
+        <div id="linksContainer">Cargando enlaces...</div>
+      </div>
     </section>
 
   </main>
 
-  <!-- SCRIPTS -->
-  <!-- Script Principal (Orquestador de Navegación y UI Base) -->
-  <script src="app.js"></script>
-
-  <!-- Scripts Modulares e Independientes -->
+  <!-- Carga de Scripts JS -->
+  <script src="js/app.js"></script>
   <script src="js/compras.js"></script>
   <script src="js/tareas.js"></script>
   <script src="js/bbm.js"></script>
   <script src="js/estudio.js"></script>
   <script src="js/gastos.js"></script>
+  <script src="js/goals.js"></script>
   <script src="js/links.js"></script>
-
 </body>
 </html>
