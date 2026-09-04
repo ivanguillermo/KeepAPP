@@ -1,3 +1,6 @@
+/* ==========================================
+   1. VARIABLES Y CONFIGURACIÓN GLOBAL
+   ========================================== */
 :root {
   --bg: #0f172a;
   --card-bg: #1e293b;
@@ -5,21 +8,35 @@
   --text: #f8fafc;
   --text-dim: #94a3b8;
   --drawer-bg: #182234;
+  --border-color: rgba(255, 255, 255, 0.1);
+
+  /* Estados y Colores Semánticos */
   --danger: #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.2);
   --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.2);
   --success: #10b981;
+  --success-bg: rgba(16, 185, 129, 0.2);
+  --info: #8b5cf6;
+  --info-bg: rgba(139, 92, 246, 0.2);
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   background-color: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
+/* ==========================================
+   2. HEADER Y NAVEGACIÓN PRINCIPAL (DRAWER)
+   ========================================== */
 header {
   background: var(--card-bg);
   display: flex;
@@ -29,7 +46,7 @@ header {
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .menu-btn {
@@ -48,7 +65,7 @@ header {
   margin: 0;
 }
 
-/* Drawer */
+/* Overlay y Drawer */
 .drawer-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -59,7 +76,10 @@ header {
   z-index: 200;
 }
 
-.drawer-overlay.active { opacity: 1; pointer-events: auto; }
+.drawer-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
 
 .drawer {
   position: fixed;
@@ -73,17 +93,23 @@ header {
   padding: 20px 0;
 }
 
-.drawer.active { transform: translateX(280px); }
+.drawer.active {
+  transform: translateX(280px);
+}
 
 .drawer-header {
   padding: 0 20px 20px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color);
   font-size: 1.2rem;
   font-weight: bold;
   color: var(--accent);
 }
 
-.drawer-menu { list-style: none; padding: 0; margin: 10px 0 0 0; }
+.drawer-menu {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+}
 
 .drawer-menu li a {
   display: flex;
@@ -96,37 +122,79 @@ header {
   transition: background 0.2s, color 0.2s;
 }
 
-.drawer-menu li a.active, .drawer-menu li a:hover {
+.drawer-menu li a.active,
+.drawer-menu li a:hover {
   background: rgba(56, 189, 248, 0.15);
   color: var(--accent);
   border-left: 4px solid var(--accent);
 }
 
-main { padding: 16px; padding-bottom: 40px; }
-.section-view { display: none; }
-.section-view.active { display: block; }
+/* ==========================================
+   3. ESTRUCTURA DE VISTAS Y COMPONENTES BASE
+   ========================================== */
+main {
+  padding: 16px;
+  padding-bottom: 40px;
+  max-width: 800px;
+  margin: 0 auto;
+}
 
-/* Tarjetas y UI General */
+.section-view {
+  display: none;
+}
+
+.section-view.active {
+  display: block;
+}
+
 .card {
   background: var(--card-bg);
   border-radius: 12px;
   padding: 14px;
   margin-bottom: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.03);
 }
 
-.search-input {
+.search-input, .select-input {
   width: 100%;
   padding: 10px 14px;
   background: var(--card-bg);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   color: var(--text);
   margin-bottom: 16px;
   font-size: 0.95rem;
+  outline: none;
 }
 
-/* Indicadores de Compras */
+.search-input:focus, .select-input:focus {
+  border-color: var(--accent);
+}
+
+/* Estado de Error en Módulos */
+.error-msg {
+  background: var(--danger-bg);
+  color: var(--danger);
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  text-align: center;
+  border: 1px solid var(--danger);
+}
+
+/* Badges / Etiquetas genericas */
+.badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+/* ==========================================
+   4. MÓDULO: COMPRAS
+   ========================================== */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -139,6 +207,7 @@ main { padding: 16px; padding-bottom: 40px; }
   padding: 10px;
   border-radius: 10px;
   text-align: center;
+  border: 1px solid var(--border-color);
 }
 
 .stat-val {
@@ -153,7 +222,6 @@ main { padding: 16px; padding-bottom: 40px; }
   color: var(--text-dim);
 }
 
-/* Items de Compras */
 .compras-card {
   display: flex;
   justify-content: space-between;
@@ -168,10 +236,12 @@ main { padding: 16px; padding-bottom: 40px; }
 .compras-details {
   font-size: 0.75rem;
   color: var(--text-dim);
+  line-height: 1.4;
 }
 
 .prices {
   text-align: right;
+  min-width: 80px;
 }
 
 .price-usd {
@@ -185,29 +255,41 @@ main { padding: 16px; padding-bottom: 40px; }
   color: var(--text-dim);
 }
 
-.status-badge {
-  display: inline-block;
-  font-size: 0.65rem;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: bold;
-  margin-top: 4px;
-}
+.status-suficiente { background: var(--success-bg); color: var(--success); }
+.status-por-agotar { background: var(--warning-bg); color: var(--warning); }
+.status-agotado { background: var(--danger-bg); color: var(--danger); }
 
-.status-suficiente { background: rgba(16, 185, 129, 0.2); color: var(--success); }
-.status-por-agotar { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
-.status-agotado { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
-
-/* BBM y Tareas */
+/* ==========================================
+   5. MÓDULO: TAREAS
+   ========================================== */
 .task-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-left: 4px solid var(--accent);
 }
-.score-tag { text-align: right; font-size: 1.1rem; font-weight: bold; color: #4ade80; }
-.score-label { font-size: 0.65rem; color: var(--text-dim); display: block; }
 
+.task-card h3 {
+  margin: 0 0 6px 0;
+  font-size: 0.95rem;
+}
+
+.score-tag {
+  text-align: right;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #4ade80;
+}
+
+.score-label {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  display: block;
+}
+
+/* ==========================================
+   6. MÓDULO: BBM (GYM)
+   ========================================== */
 .bbm-tabs {
   display: flex;
   gap: 8px;
@@ -227,19 +309,80 @@ main { padding: 16px; padding-bottom: 40px; }
   font-weight: 600;
   border-radius: 6px;
   cursor: pointer;
+  transition: background 0.2s, color 0.2s;
 }
 
-.bbm-tab-btn.active { background: var(--accent); color: var(--bg); }
-.bbm-subview { display: none; }
-.bbm-subview.active { display: block; }
+.bbm-tab-btn.active {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.bbm-subview {
+  display: none;
+}
+
+.bbm-subview.active {
+  display: block;
+}
 
 .day-select {
   width: 100%;
   padding: 10px;
   background: var(--card-bg);
   color: var(--text);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 1rem;
   margin-bottom: 16px;
+}
+
+.record-row, .medida-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.record-row:last-child, .medida-row:last-child {
+  border-bottom: none;
+}
+
+/* ==========================================
+   7. MÓDULOS: ESTUDIO, GASTOS Y LINKS
+   ========================================== */
+.grid-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+@media (min-width: 600px) {
+  .grid-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.link-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  color: var(--text);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.link-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+
+.gastos-summary {
+  background: var(--card-bg);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
 }
