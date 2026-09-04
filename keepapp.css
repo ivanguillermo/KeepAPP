@@ -423,3 +423,130 @@ main.content-area {
   height: calc(100% - 40px);
   object-fit: contain; /* Previene distorsión del contenido */
 }
+
+/* ==========================================
+   MÓDULO GOALS / METAS
+   ========================================== */
+
+/* Barra de pestañas horizontal desplazable */
+.goals-tabs-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 12px 0;
+  margin-bottom: 15px;
+  scrollbar-width: none; /* Firefox */
+  -webkit-overflow-scrolling: touch;
+}
+
+.goals-tabs-scroll::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.goals-tab-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 20px;
+}
+
+/* Envoltorio de cada tarjeta para efecto Swipe */
+.swipe-item-wrapper {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background-color: #2b2b3d; /* Fondo que se revela detrás */
+}
+
+/* Contenido frontal de la tarjeta */
+.swipe-content {
+  position: relative;
+  z-index: 2;
+  transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--card-bg, #1e1e2d);
+  padding: 14px 16px;
+  margin-bottom: 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  user-select: none;
+}
+
+/* Botón revelado al deslizar a la izquierda */
+.swipe-action-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  background-color: #2e7d32;
+  color: #ffffff;
+  border: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: inset 2px 0 5px rgba(0,0,0,0.2);
+}
+
+.swipe-action-btn:active {
+  background-color: #1b5e20;
+}
+
+/* Desplazamiento de la tarjeta cuando se hace Swipe */
+.swipe-item-wrapper.swiped .swipe-content {
+  transform: translateX(-80px);
+}
+
+/* Estilos de las metas */
+.goal-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-right: 10px;
+}
+
+.goal-text {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-color, #ffffff);
+  line-height: 1.3;
+}
+
+/* Estado de Meta Lograda / Completada */
+.goal-card.completed {
+  opacity: 0.65;
+  background-color: rgba(46, 125, 50, 0.12) !important;
+  border-left: 4px solid #4caf50;
+}
+
+.goal-card.completed .goal-text {
+  text-decoration: line-through;
+  color: #a0a0b0;
+}
+
+/* Badges de estado */
+.status-por-agotar {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.status-suficiente {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
