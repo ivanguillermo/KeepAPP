@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mi App - Panel de Control</title>
+  <title>KeepAPP</title>
   
   <!-- CSS Principal -->
   <link rel="stylesheet" href="keepapp.css">
@@ -11,7 +11,7 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- PapaParse Library para lectura de CSV -->
+  <!-- PapaParse para CSV -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
 <body>
@@ -98,7 +98,6 @@
 
     <!-- 3. BBM (ENTRENAMIENTO) -->
     <section id="sec-bbm" class="section-content">
-      <!-- Selector de Sub-Sección BBM -->
       <div class="subnav-tabs">
         <button class="tab-btn active" onclick="switchBBMTab('rutina')">Rutina</button>
         <button class="tab-btn" onclick="switchBBMTab('records')">Récords</button>
@@ -110,6 +109,13 @@
         <div class="card">
           <select id="bbm-day-select" class="select-input">
             <option value="">Selecciona un día...</option>
+            <option value="Lunes">Lunes</option>
+            <option value="Martes">Martes</option>
+            <option value="Miércoles">Miércoles</option>
+            <option value="Jueves">Jueves</option>
+            <option value="Viernes">Viernes</option>
+            <option value="Sábado">Sábado</option>
+            <option value="Domingo">Domingo</option>
           </select>
           <div id="bbm-rutina-list" class="data-list">Selecciona un día para ver los ejercicios.</div>
         </div>
@@ -133,6 +139,8 @@
     <!-- 4. ESTUDIO -->
     <section id="sec-estudio" class="section-content">
       <div class="card">
+        <!-- Contenedor de Pestañas dinámicas para UNA, UNEY, CURSOS -->
+        <div id="estudio-tabs-container" class="subnav-tabs"></div>
         <input type="text" id="estudio-search" class="search-input" placeholder="Buscar materia o tema...">
         <div id="estudio-list" class="data-list">Cargando plan de estudio...</div>
       </div>
@@ -141,21 +149,21 @@
     <!-- 5. METAS -->
     <section id="sec-metas" class="section-content">
       <div class="card">
-        <div id="goals-tabs-container" class="subnav-tabs">
-          <!-- Las pestañas de años/categorías se generarán dinámicamente -->
-        </div>
+        <div id="goals-tabs-container" class="subnav-tabs"></div>
         <div id="goals-list" class="data-list">Cargando metas...</div>
       </div>
     </section>
 
   </main>
 
-  <!-- SCRIPTS JS -->
+  <!-- SCRIPTS JS DESDE LA CARPETA js/ -->
   <script src="js/compras.js"></script>
   <script src="js/tareas.js"></script>
   <script src="js/bbm.js"></script>
   <script src="js/estudio.js"></script>
   <script src="js/goals.js"></script>
+  
+  <!-- SCRIPT PRINCIPAL EN LA RAÍZ -->
   <script src="app.js"></script>
 
 </body>
