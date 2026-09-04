@@ -111,3 +111,38 @@ const EstudioModule = (() => {
 })();
 
 window.EstudioModule = EstudioModule;
+const EstudioModule = (function () {
+  const categorias = ["TODAS", "UNA", "UNEY", "CURSOS"];
+  let categoriaActual = "TODAS";
+
+  function renderTabs() {
+    const container = document.getElementById("estudio-tabs-container");
+    if (!container) return;
+
+    container.innerHTML = categorias.map(cat => `
+      <button class="tab-btn ${cat === categoriaActual ? 'active' : ''}" 
+              onclick="EstudioModule.setCategoria('${cat}')">
+        ${cat}
+      </button>
+    `).join('');
+  }
+
+  function setCategoria(cat) {
+    categoriaActual = cat;
+    renderTabs();
+    renderLista();
+  }
+
+  function renderLista() {
+    const listEl = document.getElementById("estudio-list");
+    if (!listEl) return;
+    // Lógica para filtrar y mostrar el contenido según categoriaActual
+  }
+
+  function init() {
+    renderTabs();
+    renderLista();
+  }
+
+  return { init, setCategoria };
+})();
