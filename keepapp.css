@@ -764,30 +764,6 @@ main, main.content-area {
   color: var(--text-dim);
 }
 
-/* ==========================================
-   9. REPRODUCTOR PERSISTENTE FIJO
-   ========================================== */
-#player-container {
-  position: fixed;
-  bottom: 0;
-  right: 20px;
-  width: 380px;
-  height: 220px;
-  background: #0f172a;
-  border-radius: 12px 12px 0 0;
-  overflow: hidden;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
-  z-index: 1500;
-  border: 1px solid var(--border-color);
-  border-bottom: none;
-}
-
-#player-container #media-frame {
-  width: 100%;
-  height: calc(100% - 30px);
-  object-fit: contain;
-}
-
 /* Ajuste responsive para pantallas pequeñas */
 @media (max-width: 480px) {
   #player-container {
