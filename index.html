@@ -26,7 +26,8 @@
       <li><a href="#" id="link-tareas" onclick="navigate('tareas', 'Tareas')">Tareas</a></li>
       <li><a href="#" id="link-bbm" onclick="navigate('bbm', 'BBM')">BBM</a></li>
       <li><a href="#" id="link-estudio" onclick="navigate('estudio', 'Estudio')">Estudio</a></li>
-      <li><a href="#" id="link-gastos" onclick="navigate('gastos', 'Gastos')">Gastos</a></li>
+      <li><a href="#" id="link-goals" onclick="navigate('gastos', 'Gastos')">Gastos</a></li>
+      <li><a href="#" id="link-gastos" onclick="navigate('goals', 'Goals')">Goals</a></li>
       <li><a href="#" id="link-links" onclick="navigate('links', 'Links')">Links</a></li>
     </ul>
   </nav>
@@ -110,7 +111,25 @@
       <div id="gastosContainer">Cargando historial de gastos...</div>
     </section>
 
-    <!-- 6. MÓDULO LINKS -->
+    <!-- 6. MÓDULO GOALS -->
+    <section id="view-goals" class="section-view">
+      
+      <div class="goals-tabs-scroll">
+        <button class="bbm-tab-btn goals-tab-btn" data-tab="300" onclick="switchGoalsTab('300')">300</button>
+        <button class="bbm-tab-btn goals-tab-btn" data-tab="Julio" onclick="switchGoalsTab('Julio')">Julio</button>
+        <button class="bbm-tab-btn goals-tab-btn" data-tab="Agosto" onclick="switchGoalsTab('Agosto')">Agosto</button>
+        <button class="bbm-tab-btn goals-tab-btn active" data-tab="Septiembre" onclick="switchGoalsTab('Septiembre')">Septiembre</button>
+        <button class="bbm-tab-btn goals-tab-btn" data-tab="Octubre" onclick="switchGoalsTab('Octubre')">Octubre</button>
+        <button class="bbm-tab-btn goals-tab-btn" data-tab="Noviembre" onclick="switchGoalsTab('Noviembre')">Noviembre</button>
+        <button class="bbm-tab-btn goals-tab-btn" data-tab="Diciembre" onclick="switchGoalsTab('Diciembre')">Diciembre</button>
+        <button class="bbm-tab-btn goals-tab-btn" data-tab="Week" onclick="switchGoalsTab('Week')">Week</button>
+      </div>
+    
+      <div id="goalsContainer">Cargando metas...</div>
+    
+    </section>
+
+    <!-- 7. MÓDULO LINKS -->
     <section id="view-links" class="section-view">
       <div id="linksContainer">Cargando enlaces...</div>
     </section>
