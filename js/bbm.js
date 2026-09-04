@@ -22,7 +22,9 @@ const BBMModule = (() => {
 
   let activeTab = 'rutinas';
   let selectedDay = 'lunes';
-
+   document.getElementById('bbm-day-select')?.addEventListener('change', (e) => {
+  BBMModule.renderRutina(e.target.value);
+});
   /* ------------------------------------------
      1. INICIALIZACIÓN Y CARGA DE DATOS
      ------------------------------------------ */
