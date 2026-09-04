@@ -13,6 +13,20 @@ function toggleMenu() {
     overlay.classList.toggle("active");
   }
 }
+document.addEventListener("DOMContentLoaded", () => {
+  const btnMenu = document.getElementById("btn-menu");
+  const overlay = document.getElementById("drawer-overlay");
+
+  if (btnMenu) btnMenu.addEventListener("click", toggleMenu);
+  if (overlay) overlay.addEventListener("click", toggleMenu);
+
+  // Inicializar módulos de la app
+  if (window.ComprasModule) ComprasModule.init();
+  if (window.TareasModule) TareasModule.init();
+  if (window.BBMModule) BBMModule.init();
+  if (window.EstudioModule) EstudioModule.init();
+  if (window.GoalsModule) GoalsModule.init();
+});
 
 // Navegar entre secciones principales del Menú Lateral
 function navigate(sectionId, titleText) {
