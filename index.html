@@ -3,236 +3,61 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KeepAPP Men</title>
+  <title>KeepApp</title>
+  <link rel="stylesheet" href="keepapp.css">
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <style>
-    :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --accent: #38bdf8;
-      --text: #f8fafc;
-      --text-dim: #94a3b8;
-      --drawer-bg: #182234;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-
-    /* Header */
-    header {
-      background: var(--card-bg);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 18px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
-
-    .menu-btn {
-      background: none;
-      border: none;
-      color: var(--text);
-      font-size: 1.5rem;
-      cursor: pointer;
-      padding: 0;
-    }
-
-    .header-title {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: var(--accent);
-      margin: 0;
-    }
-
-    /* Drawer / Sidebar */
-    .drawer-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.6);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-      z-index: 200;
-    }
-
-    .drawer-overlay.active { opacity: 1; pointer-events: auto; }
-
-    .drawer {
-      position: fixed;
-      top: 0; left: -280px;
-      width: 280px; height: 100%;
-      background: var(--drawer-bg);
-      z-index: 201;
-      transition: transform 0.3s ease;
-      display: flex;
-      flex-direction: column;
-      padding: 20px 0;
-    }
-
-    .drawer.active { transform: translateX(280px); }
-
-    .drawer-header {
-      padding: 0 20px 20px 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: var(--accent);
-    }
-
-    .drawer-menu { list-style: none; padding: 0; margin: 10px 0 0 0; }
-
-    .drawer-menu li a {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 20px;
-      color: var(--text-dim);
-      text-decoration: none;
-      font-size: 1rem;
-      transition: background 0.2s, color 0.2s;
-    }
-
-    .drawer-menu li a.active, .drawer-menu li a:hover {
-      background: rgba(56, 189, 248, 0.15);
-      color: var(--accent);
-      border-left: 4px solid var(--accent);
-    }
-
-    /* Vistas Principales */
-    main { padding: 16px; padding-bottom: 40px; }
-    .section-view { display: none; }
-    .section-view.active { display: block; }
-
-    /* Componentes de Tarjetas */
-    .card {
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 12px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-    }
-
-    /* Estilos Tareas */
-    .task-card {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-left: 4px solid var(--accent);
-    }
-    .task-info h3 { margin: 0 0 6px 0; font-size: 1rem; }
-    .badges { display: flex; gap: 6px; flex-wrap: wrap; }
-    .badge {
-      font-size: 0.7rem;
-      padding: 3px 8px;
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-dim);
-    }
-    .score-tag {
-      text-align: right;
-      font-size: 1.1rem;
-      font-weight: bold;
-      color: #4ade80;
-    }
-    .score-label { font-size: 0.65rem; color: var(--text-dim); display: block; }
-
-    /* Sub-Navegación BBM (Tabs) */
-    .bbm-tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-      background: var(--card-bg);
-      padding: 6px;
-      border-radius: 10px;
-    }
-
-    .bbm-tab-btn {
-      flex: 1;
-      background: none;
-      border: none;
-      color: var(--text-dim);
-      padding: 8px 0;
-      font-size: 0.85rem;
-      font-weight: 600;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .bbm-tab-btn.active {
-      background: var(--accent);
-      color: var(--bg);
-    }
-
-    .bbm-subview { display: none; }
-    .bbm-subview.active { display: block; }
-
-    .day-select {
-      width: 100%;
-      padding: 10px;
-      background: var(--card-bg);
-      color: var(--text);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      font-size: 1rem;
-      margin-bottom: 16px;
-    }
-
-    .card-title { margin: 0 0 6px 0; font-size: 1rem; color: var(--text); }
-    .card-subtitle { font-size: 0.85rem; color: var(--accent); margin-bottom: 4px; }
-    .card-meta { font-size: 0.75rem; color: var(--text-dim); }
-
-    .records-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .record-box {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 8px;
-      border-radius: 6px;
-      text-align: center;
-    }
-
-    .record-val { font-size: 1.1rem; font-weight: bold; color: #4ade80; }
-    .record-lbl { font-size: 0.65rem; color: var(--text-dim); }
-  </style>
 </head>
 <body>
 
+  <!-- Header -->
   <header>
     <button class="menu-btn" onclick="toggleMenu()">☰</button>
-    <h1 class="header-title" id="currentSectionTitle">📋 Tareas</h1>
+    <h1 class="header-title" id="currentSectionTitle">🛒 Compras</h1>
     <div style="width: 24px;"></div>
   </header>
 
+  <!-- Drawer / Sidebar -->
   <div class="drawer-overlay" id="overlay" onclick="toggleMenu()"></div>
   <nav class="drawer" id="drawer">
-    <div class="drawer-header">📌 Menú principal</div>
+    <div class="drawer-header">Menú Principal</div>
     <ul class="drawer-menu">
       <li><a href="#" onclick="navigate('estudio', 'Estudio')">Estudio</a></li>
-      <li><a href="#" id="link-tareas" class="active" onclick="navigate('tareas', 'Tareas')">Tareas</a></li>
-      <li><a href="#" onclick="navigate('compras', 'Compras')">Compras</a></li>
-      <li><a href="#" onclick="navigate('gastos', 'Gastos')"> Gastos</a></li>
-      <li><a href="#" id="link-bbm" onclick="navigate('bbm', 'BBM')"> BBM</a></li>
+      <li><a href="#" id="link-tareas" onclick="navigate('tareas', 'Tareas')">Tareas</a></li>
+      <li><a href="#" id="link-compras" class="active" onclick="navigate('compras', 'Compras')">Compras</a></li>
+      <li><a href="#" id="link-gastos" onclick="navigate('gastos', 'Gastos')">Gastos</a></li>
+      <li><a href="#" id="link-bbm" onclick="navigate('bbm', 'BBM')">BBM</a></li>
       <li><a href="#" onclick="navigate('links', 'Links')">Links</a></li>
     </ul>
   </nav>
 
+  <!-- Vistas -->
   <main>
+    <!-- Módulo Compras -->
+    <section id="view-compras" class="section-view active">
+      <!-- Indicadores Rápidos -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-val" id="countAgotado">0</span>
+          <span class="stat-lbl">Agotados</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-val" id="countPorAgotar">0</span>
+          <span class="stat-lbl">Por agotar</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-val" id="countSuficiente">0</span>
+          <span class="stat-lbl">Suficiente</span>
+        </div>
+      </div>
+
+      <!-- Buscador y filtro -->
+      <input type="text" id="searchCompras" class="search-input" placeholder="Buscar producto..." onkeyup="filtrarCompras()">
+
+      <div id="comprasContainer">Cargando inventario de compras...</div>
+    </section>
+
     <!-- Módulo Tareas -->
-    <section id="view-tareas" class="section-view active">
+    <section id="view-tareas" class="section-view">
       <div id="taskList">Cargando tareas...</div>
     </section>
 
@@ -266,235 +91,12 @@
       </div>
     </section>
 
-    <!-- Módulos Pendientes -->
+    <!-- Vistas restantes -->
     <section id="view-estudio" class="section-view"><p>Módulo de Estudio...</p></section>
-    <section id="view-compras" class="section-view"><p>Módulo de Compras...</p></section>
     <section id="view-gastos" class="section-view"><p>Módulo de Gastos...</p></section>
     <section id="view-links" class="section-view"><p>Módulo de Links...</p></section>
   </main>
 
-  <script>
-    const SHEET_ID = "1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw";
-    
-    // URLs de pestañas en Google Sheets
-    const URL_TAREAS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=tareas`;
-    const URL_RUTINA = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=bbm_rutina`;
-    const URL_RECORDS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=bbm_records`;
-    const URL_MEDIDAS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=bbm_medidas`;
-
-    let datosRutina = [];
-
-    // Menú Hamburguesa y Navegación
-    function toggleMenu() {
-      document.getElementById("drawer").classList.toggle("active");
-      document.getElementById("overlay").classList.toggle("active");
-    }
-
-    function navigate(sectionId, titleText) {
-      document.querySelectorAll(".section-view").forEach(s => s.classList.remove("active"));
-      document.querySelectorAll(".drawer-menu a").forEach(a => a.classList.remove("active"));
-
-      document.getElementById(`view-${sectionId}`).classList.add("active");
-      document.getElementById("currentSectionTitle").innerText = titleText;
-      
-      const activeLink = document.getElementById(`link-${sectionId}`);
-      if (activeLink) activeLink.classList.add("active");
-
-      toggleMenu();
-    }
-
-    // Sub-navegación BBM
-    function switchBBMTab(tabName) {
-      document.querySelectorAll(".bbm-tab-btn").forEach(b => b.classList.remove("active"));
-      document.querySelectorAll(".bbm-subview").forEach(v => v.classList.remove("active"));
-
-      event.target.classList.add("active");
-      document.getElementById(`bbm-${tabName}`).classList.add("active");
-    }
-
-    // --- LÓGICA DE TAREAS ---
-    const VALORES = {
-      urgencia: { "Hoy": 100, "Pronto": 50, "Eventualmente": 15 },
-      importancia: { "Vital": 100, "Muy": 60, "Normal": 20 },
-      dificultad: { "Fácil": 100, "Mediano": 50, "Difícil": 20 },
-      tiempo: { "Muy rápido": 100, "Poco tiempo": 70, "Más de un día": 40, "Mucho": 10 },
-      costo: { "Gratis": 100, "Poco": 80, "Barato": 60, "Caro": 30, "Muy caro": 10 }
-    };
-
-    function calcularPrioridad(t) {
-      const u = VALORES.urgencia[t.Urgencia] || 0;
-      const i = VALORES.importancia[t.Importancia] || 0;
-      const d = VALORES.dificultad[t.Dificultad] || 0;
-      const ti = VALORES.tiempo[t.Tiempo] || 0;
-      const c = VALORES.costo[t.Costo] || 0;
-
-      return Math.round((u * 0.35) + (i * 0.30) + (d * 0.15) + (ti * 0.10) + (c * 0.10));
-    }
-
-    function cargarTareas() {
-      const url = `${URL_TAREAS}&_nocache=${new Date().getTime()}`;
-      Papa.parse(url, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: function(results) {
-          const tareas = results.data
-            .filter(t => t.Estado !== "Terminada")
-            .map(t => ({ ...t, score: calcularPrioridad(t) }))
-            .sort((a, b) => b.score - a.score);
-
-          renderizarTareas(tareas);
-        }
-      });
-    }
-
-    function renderizarTareas(lista) {
-      const contenedor = document.getElementById("taskList");
-      contenedor.innerHTML = "";
-
-      if (lista.length === 0) {
-        contenedor.innerHTML = "<p style='color: var(--text-dim); text-align: center;'>No hay tareas pendientes.</p>";
-        return;
-      }
-
-      lista.forEach(t => {
-        contenedor.innerHTML += `
-          <div class="card task-card">
-            <div class="task-info">
-              <h3>${t.Tarea}</h3>
-              <div class="badges">
-                <span class="badge">⌛ ${t.Urgencia}</span>
-                <span class="badge">🔥 ${t.Importancia}</span>
-                <span class="badge">📌 ${t.Estado}</span>
-              </div>
-            </div>
-            <div class="score-tag">
-              ${t.score}
-              <span class="score-label">PRIORIDAD</span>
-            </div>
-          </div>
-        `;
-      });
-    }
-
-    // --- LÓGICA DE BBM (GYM) ---
-    function setDiaActual() {
-      const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-      const hoy = dias[new Date().getDay()];
-      const select = document.getElementById("daySelector");
-      if (select) select.value = hoy;
-    }
-
-    function cargarRutina() {
-      const url = `${URL_RUTINA}&_nocache=${new Date().getTime()}`;
-      Papa.parse(url, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: function(results) {
-          datosRutina = results.data;
-          renderizarEjerciciosPorDia();
-        }
-      });
-    }
-
-    function renderizarEjerciciosPorDia() {
-      const diaSeleccionado = document.getElementById("daySelector").value;
-      const contenedor = document.getElementById("exerciseList");
-      contenedor.innerHTML = "";
-
-      const ejercicios = datosRutina.filter(e => e.Dia === diaSeleccionado);
-
-      if (ejercicios.length === 0) {
-        contenedor.innerHTML = "<p style='color: var(--text-dim); text-align: center;'>No hay ejercicios para este día.</p>";
-        return;
-      }
-
-      ejercicios.forEach(e => {
-        contenedor.innerHTML += `
-          <div class="card">
-            <h3 class="card-title">${e.Ejercicio}</h3>
-            <div class="card-subtitle">${e.Series} series × ${e.Repeticiones} reps</div>
-            ${e.Notas ? `<div class="card-meta">📝 ${e.Notas}</div>` : ''}
-          </div>
-        `;
-      });
-    }
-
-    function cargarRecords() {
-      const url = `${URL_RECORDS}&_nocache=${new Date().getTime()}`;
-      Papa.parse(url, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: function(results) {
-          const contenedor = document.getElementById("recordsList");
-          contenedor.innerHTML = "";
-
-          const agrupados = {};
-          results.data.forEach(r => {
-            if (!agrupados[r.Ejercicio]) agrupados[r.Ejercicio] = {};
-            agrupados[r.Ejercicio][r.Reps_Target] = r.Peso_Kg;
-          });
-
-          Object.keys(agrupados).forEach(ejercicio => {
-            const recs = agrupados[ejercicio];
-            contenedor.innerHTML += `
-              <div class="card">
-                <h3 class="card-title">${ejercicio}</h3>
-                <div class="records-grid">
-                  <div class="record-box">
-                    <div class="record-val">${recs['1RM'] || '-'} kg</div>
-                    <div class="record-lbl">1RM</div>
-                  </div>
-                  <div class="record-box">
-                    <div class="record-val">${recs['3RM'] || '-'} kg</div>
-                    <div class="record-lbl">3RM</div>
-                  </div>
-                  <div class="record-box">
-                    <div class="record-val">${recs['10RM'] || '-'} kg</div>
-                    <div class="record-lbl">10RM</div>
-                  </div>
-                </div>
-              </div>
-            `;
-          });
-        }
-      });
-    }
-
-    function cargarMedidas() {
-      const url = `${URL_MEDIDAS}&_nocache=${new Date().getTime()}`;
-      Papa.parse(url, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: function(results) {
-          const contenedor = document.getElementById("medidasList");
-          contenedor.innerHTML = "";
-
-          results.data.reverse().forEach(m => {
-            contenedor.innerHTML += `
-              <div class="card">
-                <h3 class="card-title">📅 Registro: ${m.Fecha}</h3>
-                <div class="card-subtitle">Peso: ${m.Peso_Kg} kg | Grasas: ${m['%_Grasa'] || '-'}%</div>
-                <div class="card-meta" style="margin-top:6px;">
-                  💪 Brazo: ${m.Brazo_Cm} cm | 📏 Pecho: ${m.Pecho_Cm} cm <br>
-                  📐 Cintura: ${m.Cintura_Cm} cm | 🦵 Muslo: ${m.Muslo_Cm} cm
-                </div>
-              </div>
-            `;
-          });
-        }
-      });
-    }
-
-    // Inicialización global
-    cargarTareas();
-    setDiaActual();
-    cargarRutina();
-    cargarRecords();
-    cargarMedidas();
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
