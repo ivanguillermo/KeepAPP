@@ -1,79 +1,44 @@
-/* ==========================================
-   1. VARIABLES Y CONFIGURACIÓN GLOBAL (LIGHT PASTEL)
-   ========================================== */
+/* ==========================================================================
+   1. VARIABLES (:root) Y RESET GENERAL
+   ========================================================================== */
 :root {
-  /* Fondo general y tarjetas base */
-  --bg: #f8fafc;
-  --card-bg: #ffffff;
-  --text: #1e293b;
-  --text-dim: #64748b;
-  --drawer-bg: #ffffff;
+  --bg-primary: #f8fafc;
+  --bg-card: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
   --border-color: #e2e8f0;
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --accent-color: #3b82f6;
+  
+  --status-suficiente: #dcfce7;
+  --status-suficiente-text: #166534;
+  --status-agotar: #fef9c3;
+  --status-agotar-text: #854d0e;
+  --status-agotado: #fee2e2;
+  --status-agotado-text: #991b1b;
 
-  /* Identificador de marca / Acento principal (Lavanda) */
-  --accent: #8b5cf6;
-  --accent-light: #ede9fe;
-
-  /* Estados y Colores Semánticos (Tonos Pastel Soft) */
-  --danger: #e11d48;
-  --danger-bg: #ffe4e6;
-  --warning: #d97706;
-  --warning-bg: #fef3c7;
-  --success: #059669;
-  --success-bg: #d1fae5;
-  --info: #2563eb;
-  --info-bg: #dbeafe;
-
-  /* PALETA PASTEL POR MÓDULOS / SECCIONES */
-  /* Compras (Rosa Menta Soft) */
-  --pastel-compras-accent: #e11d48;
-  --pastel-compras-bg: #fff1f2;
-  --pastel-compras-border: #fecdd3;
-
-  /* Tareas (Melocotón / Ámbar Soft) */
-  --pastel-tareas-accent: #d97706;
-  --pastel-tareas-bg: #fffbeb;
-  --pastel-tareas-border: #fde68a;
-
-  /* BBM / Gym (Menta / Esmeralda Soft) */
-  --pastel-bbm-accent: #059669;
-  --pastel-bbm-bg: #ecfdf5;
-  --pastel-bbm-border: #a7f3d0;
-
-  /* Estudio (Celeste Soft) */
-  --pastel-estudio-accent: #0284c7;
-  --pastel-estudio-bg: #f0f9ff;
-  --pastel-estudio-border: #bae6fd;
-
-  /* Gastos (Lila Soft) */
-  --pastel-gastos-accent: #7c3aed;
-  --pastel-gastos-bg: #f5f3ff;
-  --pastel-gastos-border: #ddd6fe;
-
-  /* Links & Cine (Verde Té Soft) */
-  --pastel-links-accent: #0d9488;
-  --pastel-links-bg: #f0fdfa;
-  --pastel-links-border: #99f6e4;
-
-  /* Goals / Metas (Rosa Pastel Soft) */
-  --pastel-goals-accent: #db2777;
-  --pastel-goals-bg: #fdf2f8;
-  --pastel-goals-border: #fbcfe8;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --radius: 10px;
 }
-/* Reset y layout base */
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 body {
-  background-color: #f4f6f8;
-  color: #333;
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  min-height: 100vh;
 }
 
-/* Ocultar secciones por defecto */
+/* ==========================================================================
+   2. CONTROL DE VISIBILIDAD (Aislamiento de Secciones)
+   ========================================================================== */
 .section-content {
   display: none !important;
 }
@@ -82,7 +47,6 @@ body {
   display: block !important;
 }
 
-/* BBM Tabs */
 .bbm-tab-content {
   display: none !important;
 }
@@ -91,27 +55,31 @@ body {
   display: block !important;
 }
 
-/* Header */
+/* ==========================================================================
+   3. HEADER Y MENÚ LATERAL (DRAWER)
+   ========================================================================== */
 .app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px;
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 14px 20px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
   z-index: 100;
+  box-shadow: var(--shadow-sm);
 }
 
 .icon-btn {
   background: none;
   border: none;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
+  color: var(--text-main);
   cursor: pointer;
+  padding: 4px;
 }
 
-/* Drawer / Menú Lateral Flotante */
 .drawer-overlay {
   display: none;
   position: fixed;
@@ -119,12 +87,13 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(2px);
   z-index: 200;
 }
 
 .drawer-overlay.active {
-  display: block;
+  display: block !important;
 }
 
 .drawer {
@@ -133,10 +102,10 @@ body {
   left: -280px;
   width: 280px;
   height: 100vh;
-  background: #ffffff;
+  background: var(--bg-card);
   z-index: 201;
-  transition: transform 0.3s ease;
-  box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-md);
   padding: 20px;
 }
 
@@ -144,81 +113,105 @@ body {
   transform: translateX(280px);
 }
 
+.drawer-header {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 16px;
+}
+
 .drawer-nav {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 20px;
+  gap: 6px;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px;
+  padding: 10px 14px;
   border: none;
   background: transparent;
-  border-radius: 8px;
+  border-radius: var(--radius);
   text-align: left;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  font-weight: 500;
   cursor: pointer;
   width: 100%;
 }
 
 .nav-item.active, .nav-item:hover {
-  background: #f0f3f6;
-  font-weight: bold;
+  background: var(--bg-primary);
+  color: var(--primary-color);
+  font-weight: 600;
 }
 
-/* Contenedor Principal */
+/* ==========================================================================
+   4. LAYOUT PRINCIPAL Y TARJETAS
+   ========================================================================== */
 .main-container {
-  max-width: 800px;
+  max-width: 720px;
   margin: 20px auto;
   padding: 0 16px;
 }
 
 .card {
-  background: #ffffff;
-  border-radius: 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
   padding: 16px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
 }
 
 .search-input, .select-input {
   width: 100%;
   padding: 10px 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
   margin-bottom: 16px;
   font-size: 0.95rem;
+  background: var(--bg-primary);
+  outline: none;
 }
 
-/* Pestanas secundarias (Subnav) */
+.search-input:focus, .select-input:focus {
+  border-color: var(--primary-color);
+}
+
+/* ==========================================================================
+   5. NAVEGACIÓN SECUNDARIA (PESTAÑAS)
+   ========================================================================== */
 .subnav-tabs {
   display: flex;
   gap: 8px;
   margin-bottom: 16px;
-  border-bottom: 2px solid #e5e7eb;
-  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
   overflow-x: auto;
 }
 
 .tab-btn {
-  padding: 6px 16px;
-  border: none;
-  background: #e5e7eb;
+  padding: 6px 14px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-muted);
   border-radius: 20px;
   cursor: pointer;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
+  font-weight: 500;
   white-space: nowrap;
 }
 
 .tab-btn.active {
-  background: #2563eb;
+  background: var(--primary-color);
   color: #ffffff;
+  border-color: var(--primary-color);
 }
 
-/* Grillas y Stats */
+/* ==========================================================================
+   6. GRID DE ESTADÍSTICAS (Stats)
+   ========================================================================== */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -228,219 +221,9 @@ body {
 }
 
 .stat-card {
-  background: #f9fafb;
+  background: var(--bg-primary);
   padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #f3f4f6;
-}
-
-.stat-val {
-  display: block;
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-.stat-lbl {
-  font-size: 0.75rem;
-  color: #6b7280;
-}
-* {
-  box-sizing: border-box;
-}
-
-body {
-  background-color: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  margin: 0;
-  padding: 0;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* ==========================================
-   2. HEADER Y NAVEGACIÓN PRINCIPAL (DRAWER)
-   ========================================== */
-header, #navbar {
-  background: var(--card-bg);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 18px;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  border-bottom: 1px solid var(--border-color);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.menu-btn {
-  background: none;
-  border: none;
-  color: var(--text);
-  font-size: 1.4rem;
-  cursor: pointer;
-  padding: 0;
-}
-
-.header-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--text);
-  margin: 0;
-  letter-spacing: -0.02em;
-}
-
-/* Overlay y Drawer Lateral */
-.drawer-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(15, 23, 42, 0.3);
-  backdrop-filter: blur(2px);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-  z-index: 2000;
-}
-
-.drawer-overlay.active {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.drawer {
-  position: fixed;
-  top: 0; left: -280px;
-  width: 280px; height: 100%;
-  background: var(--drawer-bg);
-  z-index: 2001;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex;
-  flex-direction: column;
-  padding: 20px 0;
-  border-right: 1px solid var(--border-color);
-}
-
-.drawer.active {
-  transform: translateX(280px);
-}
-
-.drawer-header {
-  padding: 0 20px 20px 20px;
-  border-bottom: 1px solid var(--border-color);
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--accent);
-}
-
-.drawer-menu {
-  list-style: none;
-  padding: 0;
-  margin: 10px 0 0 0;
-}
-
-.drawer-menu li a {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  color: var(--text-dim);
-  text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 500;
-  transition: background 0.2s, color 0.2s;
-}
-
-.drawer-menu li a.active,
-.drawer-menu li a:hover {
-  background: var(--accent-light);
-  color: var(--accent);
-  border-left: 4px solid var(--accent);
-}
-
-/* ==========================================
-   3. ESTRUCTURA DE VISTAS Y COMPONENTES BASE
-   ========================================== */
-main, main.content-area {
-  padding: 16px;
-  padding-bottom: 240px; /* Margen para asegurar que el reproductor no tape contenido */
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.section-view {
-  display: none;
-}
-
-.section-view.active {
-  display: block;
-}
-
-.card {
-  background: var(--card-bg);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  border: 1px solid var(--border-color);
-}
-
-.search-input, .select-input, .day-select {
-  width: 100%;
-  padding: 10px 14px;
-  background: #f1f5f9;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text);
-  margin-bottom: 16px;
-  font-size: 0.95rem;
-  outline: none;
-  transition: border-color 0.2s, background 0.2s;
-}
-
-.search-input:focus, .select-input:focus, .day-select:focus {
-  border-color: var(--accent);
-  background: #ffffff;
-}
-
-.error-msg {
-  background: var(--danger-bg);
-  color: var(--danger);
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  text-align: center;
-  border: 1px solid rgba(225, 29, 72, 0.2);
-}
-
-.badge {
-  display: inline-block;
-  font-size: 0.7rem;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-weight: 600;
-}
-
-/* ==========================================
-   4. MÓDULO: COMPRAS (Estilo Pastel Rosa)
-   ========================================== */
-#view-compras .card,
-.compras-card {
-  background: var(--pastel-compras-bg);
-  border: 1px solid var(--pastel-compras-border);
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.stat-card {
-  background: var(--card-bg);
-  padding: 10px;
-  border-radius: 10px;
-  text-align: center;
+  border-radius: var(--radius);
   border: 1px solid var(--border-color);
 }
 
@@ -448,328 +231,42 @@ main, main.content-area {
   display: block;
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--pastel-compras-accent);
+  color: var(--text-main);
 }
 
 .stat-lbl {
-  font-size: 0.68rem;
-  color: var(--text-dim);
+  font-size: 0.72rem;
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.5px;
 }
 
-.compras-card {
+/* ==========================================================================
+   7. ELEMENTOS DE LISTA (COMPRAS, TAREAS, BBM, ESTUDIO, METAS)
+   ========================================================================== */
+.data-list {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.compras-info h4 {
-  margin: 0 0 4px 0;
-  font-size: 0.95rem;
-  color: var(--text);
-}
-
-.compras-details {
-  font-size: 0.8rem;
-  color: var(--text-dim);
-  line-height: 1.4;
-}
-
-.prices {
-  text-align: right;
-  min-width: 80px;
-}
-
-.price-usd {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--pastel-compras-accent);
-}
-
-.price-ves {
-  font-size: 0.75rem;
-  color: var(--text-dim);
-}
-
-.status-suficiente { 
-  background: var(--success-bg); 
-  color: var(--success); 
-  border: 1px solid rgba(5, 150, 105, 0.2);
-}
-
-.status-por-agotar { 
-  background: var(--warning-bg); 
-  color: var(--warning); 
-  border: 1px solid rgba(217, 119, 6, 0.2);
-}
-
-.status-agotado { 
-  background: var(--danger-bg); 
-  color: var(--danger); 
-  border: 1px solid rgba(225, 29, 72, 0.2);
-}
-
-/* ==========================================
-   5. MÓDULO: TAREAS (Estilo Pastel Ámbar)
-   ========================================== */
-#view-tareas .task-card,
-.task-card {
-  background: var(--pastel-tareas-bg);
-  border: 1px solid var(--pastel-tareas-border);
-  border-left: 4px solid var(--pastel-tareas-accent);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.task-card h3 {
-  margin: 0 0 4px 0;
-  font-size: 0.95rem;
-  color: var(--text);
-}
-
-.score-tag {
-  text-align: right;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--pastel-tareas-accent);
-}
-
-.score-label {
-  font-size: 0.68rem;
-  color: var(--text-dim);
-  display: block;
-}
-
-/* ==========================================
-   6. MÓDULO: BBM / GYM (Estilo Pastel Esmeralda)
-   ========================================== */
-.section-content { display: none; }
-.section-content.active { display: block; }
-.bbm-tab-content { display: none; }
-.bbm-tab-content.active { display: block; }
-
-#view-bbm .card {
-  background: #ffffff;
-  border-top: 3px solid var(--pastel-bbm-accent);
-}
-
-.bbm-tabs {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 16px;
-  background: #f1f5f9;
-  padding: 4px;
-  border-radius: 8px;
-}
-
-.bbm-tab-btn {
-  flex: 1;
-  background: none;
-  border: none;
-  color: var(--text-dim);
-  padding: 8px 0;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-
-.bbm-tab-btn.active {
-  background: var(--pastel-bbm-bg);
-  color: var(--pastel-bbm-accent);
-  border: 1px solid var(--pastel-bbm-border);
-}
-
-.bbm-subview {
-  display: none;
-}
-
-.bbm-subview.active {
-  display: block;
-}
-
-.record-row, .medida-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.record-row:last-child, .medida-row:last-child {
-  border-bottom: none;
-}
-
-/* ==========================================
-   7. MÓDULOS: ESTUDIO, GASTOS Y LINKS
-   ========================================== */
-.grid-list {
-  display: grid;
-  grid-template-columns: 1fr;
+  flex-direction: column;
   gap: 10px;
 }
 
-@media (min-width: 600px) {
-  .grid-list {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* Módulo Estudio (Pastel Celeste) */
-#view-estudio .card {
-  background: var(--pastel-estudio-bg);
-  border: 1px solid var(--pastel-estudio-border);
-}
-
-/* Módulo Gastos (Pastel Lila) */
-#view-gastos .card,
-.gastos-summary {
-  background: var(--pastel-gastos-bg);
-  border: 1px solid var(--pastel-gastos-border);
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 16px;
-  display: flex;
-  justify-content: space-around;
-  text-align: center;
-}
-
-/* Módulo Links / Cine (Pastel Verde Té) */
-#view-links .link-card,
-.link-card {
-  background: var(--pastel-links-bg);
-  border: 1px solid var(--pastel-links-border);
-  padding: 14px;
-  border-radius: 10px;
+.item-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  text-decoration: none;
-  color: var(--text);
-  font-weight: 500;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.link-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
-}
-
-/* ==========================================
-   8. MÓDULO GOALS / METAS (Pastel Rosa Soft)
-   ========================================== */
-.goals-tabs-scroll {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 4px 0 12px 0;
-  margin-bottom: 15px;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-}
-
-.goals-tabs-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.goals-tab-btn {
-  white-space: nowrap;
-  flex-shrink: 0;
-  padding: 8px 16px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border-radius: 20px;
-  background: #f1f5f9;
+  padding: 12px 14px;
+  background: var(--bg-card);
   border: 1px solid var(--border-color);
-  color: var(--text-dim);
-  cursor: pointer;
+  border-radius: var(--radius);
 }
 
-.goals-tab-btn.active {
-  background: var(--pastel-goals-bg);
-  color: var(--pastel-goals-accent);
-  border-color: var(--pastel-goals-border);
+.item-badge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
 }
 
-.swipe-item-wrapper {
-  position: relative;
-  overflow: hidden;
-  margin-bottom: 10px;
-  border-radius: 10px;
-  background-color: var(--success-bg);
-}
-
-.swipe-content {
-  position: relative;
-  z-index: 2;
-  transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--pastel-goals-bg);
-  padding: 14px 16px;
-  border: 1px solid var(--pastel-goals-border);
-  border-radius: 10px;
-  user-select: none;
-}
-
-.swipe-action-btn {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 80px;
-  background-color: var(--success);
-  color: #ffffff;
-  border: none;
-  font-weight: 700;
-  font-size: 0.85rem;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.swipe-item-wrapper.swiped .swipe-content {
-  transform: translateX(-80px);
-}
-
-.goal-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-right: 10px;
-}
-
-.goal-text {
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--text);
-  line-height: 1.3;
-}
-
-.goal-card.completed {
-  opacity: 0.6;
-  background-color: #f1f5f9 !important;
-  border-color: var(--border-color) !important;
-  border-left: 4px solid var(--success) !important;
-}
-
-.goal-card.completed .goal-text {
-  text-decoration: line-through;
-  color: var(--text-dim);
-}
-
-/* Ajuste responsive para pantallas pequeñas */
-@media (max-width: 480px) {
-  #player-container {
-    right: 0;
-    width: 100%;
-    height: 200px;
-    border-radius: 12px 12px 0 0;
-  }
-}
+.badge-suficiente { background: var(--status-suficiente); color: var(--status-suficiente-text); }
+.badge-agotar { background: var(--status-agotar); color: var(--status-agotar-text); }
+.badge-agotado { background: var(--status-agotado); color: var(--status-agotado-text); }
