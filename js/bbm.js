@@ -1,46 +1,77 @@
-/**
- * Módulo Independiente: BBM / Fitness & Gym
- * Archivo: js/bbm.js
- */
-(function () {
-  const SHEET_ID = "1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw";
-  const URL_BASE = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;
+/* ==========================================
+   MÓDULO: BBM (GYM & TRAINING) - KEEPAPP
+   Carga con PapaParse desde Google Sheets (CSV)
+   ========================================== */
 
-  let datosEjercicios = [];
-  let datosRecords = [];
-  let datosMedidas = [];
+const BBMModule = (() => {
+  // ID de tu Google Sheet
+  const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
 
-  function initBBM() {
-    try {
-      const timeStamp = new Date().getTime();
+  // URLs de exportación CSV por pestaña
+  const CSV_URLS = {
+    rutinas: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=bbm_rutinas`,
+    records: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=bbm_records`,
+    medidas: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=bbm_medidas`
+  };
 
-      // Carga en paralelo de las 3 pestañas de la hoja de cálculo
-      Promise.all([
-        fetchCSV(`${URL_BASE}bbm_rutinas&_nocache=${timeStamp}`),
-        fetchCSV(`${URL_BASE}bbm_records&_nocache=${timeStamp}`),
-        fetchCSV(`${URL_BASE}bbm_medidas&_nocache=${timeStamp}`)
-      ])
-        .then(([ejercicios, records, medidas]) => {
-          datosEjercicios = ejercicios || [];
-          datosRecords = records || [];
-          datosMedidas = medidas || [];
+  let bbmData = {
+    rutinas: {},
+    records: [],
+    medidas: []
+  };
 
-          renderizarEjercicios(datosEjercicios);
-          renderizarRecords(datosRecords);
-          renderizarMedidas(datosMedidas);
-        })
-        .catch((err) => {
-          console.error("Error al cargar los módulos de BBM:", err);
-          mostrarErrorGlobal("No se pudieron obtener los datos de BBM.");
-        });
-    } catch (error) {
-      console.error("Error crítico en initBBM:", error);
-      mostrarErrorGlobal("Ocurrió un error inesperado al iniciar BBM.");
+  let activeTab = 'rutinas';
+  let selectedDay = 'lunes';
+
+  /* ------------------------------------------
+     1. INICIALIZACIÓN Y CARGA DE DATOS
+     ------------------------------------------ */
+  const init = () => {
+    setupEventListeners();
+    fetchAllSheets();
+  };
+
+  const setupEventListeners = () => {
+    // Cambio de pestañas (Rutinas, Récords, Medidas)
+    document.querySelectorAll('.bbm-tab-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const tabTarget = e.currentTarget.dataset.tab;
+        if (tabTarget) switchTab(tabTarget);
+      });
+    });
+
+    // Selector de día
+    const daySelect = document.getElementById('bbm-day-select');
+    if (daySelect) {
+      daySelect.addEventListener('change', (e) => {
+        selectedDay = e.target.value.toLowerCase();
+        renderRutinaDia();
+      });
     }
-  }
+  };
 
-  // Wrapper genérico para parsear CSV mediante PapaParse usando Promises
-  function fetchCSV(url) {
+  const fetchAllSheets = () => {
+    if (typeof Papa === 'undefined') {
+      console.error('PapaParse no está cargado.');
+      return;
+    }
+
+    // Peticiones en paralelo con PapaParse
+    Promise.all([
+      parseCSV(CSV_URLS.rutinas),
+      parseCSV(CSV_URLS.records),
+      parseCSV(CSV_URLS.medidas)
+    ]).then(([rutinasRaw, recordsRaw, medidasRaw]) => {
+      bbmData.rutinas = processRutinas(rutinasRaw);
+      bbmData.records = recordsRaw;
+      bbmData.medidas = medidasRaw;
+      render();
+    }).catch(err => {
+      console.error('Error al parsear los datos con PapaParse:', err);
+    });
+  };
+
+  const parseCSV = (url) => {
     return new Promise((resolve, reject) => {
       Papa.parse(url, {
         download: true,
@@ -50,153 +81,139 @@
         error: (err) => reject(err)
       });
     });
-  }
+  };
 
-  // -------------------------------------------------------------
-  // 1. RENDERIZADO DE EJERCICIOS
-  // -------------------------------------------------------------
-  function renderizarEjercicios(items) {
-    const container = document.getElementById("bbmEjerciciosContainer");
+  // Agrupa las rutinas en un objeto según el día de la semana
+  const processRutinas = (data) => {
+    const agrupado = {};
+    data.forEach(item => {
+      const dia = (item.dia || item.Dia || '').toLowerCase().trim();
+      if (!dia) return;
+
+      if (!agrupado[dia]) agrupado[dia] = [];
+      agrupado[dia].push({
+        nombre: item.ejercicio || item.nombre || '',
+        series: item.series || item.Series || '',
+        repeticiones: item.repeticiones || item.reps || '',
+        peso: item.peso || item.Peso || '',
+        descanso: item.descanso || '',
+        notas: item.notas || ''
+      });
+    });
+    return agrupado;
+  };
+
+  /* ------------------------------------------
+     2. PESTAÑAS Y VISTAS
+     ------------------------------------------ */
+  const switchTab = (tabName) => {
+    activeTab = tabName;
+
+    document.querySelectorAll('.bbm-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tabName);
+    });
+
+    document.querySelectorAll('.bbm-subview').forEach(subview => {
+      subview.classList.toggle('active', subview.id === `bbm-subview-${tabName}`);
+    });
+
+    render();
+  };
+
+  /* ------------------------------------------
+     3. RENDERIZADO DE INTERFAZ
+     ------------------------------------------ */
+  const render = () => {
+    if (activeTab === 'rutinas') renderRutinaDia();
+    else if (activeTab === 'records') renderRecords();
+    else if (activeTab === 'medidas') renderMedidas();
+  };
+
+  const renderRutinaDia = () => {
+    const container = document.getElementById('bbm-rutina-list');
     if (!container) return;
 
-    if (!items || items.length === 0) {
-      container.innerHTML =
-        "<p style='color: var(--text-dim); text-align: center;'>No hay ejercicios registrados.</p>";
+    const ejercicios = bbmData.rutinas?.[selectedDay] || [];
+
+    if (ejercicios.length === 0) {
+      container.innerHTML = `
+        <div class="card" style="text-align: center; color: var(--text-dim);">
+          <p style="margin: 0;">No hay ejercicios para el <strong>${capitalize(selectedDay)}</strong>.</p>
+        </div>`;
       return;
     }
 
-    let html = "";
-    items.forEach((item) => {
-      const nombre = item.Ejercicio || "Ejercicio sin nombre";
-      const grupo = item.Series || "";
-      const equipo = item.Repeticiones || "";
-      const nota = item.Notas ? `<p class="bbm-notes">💡 ${item.Notas}</p>` : "";
-
-      html += `
-        <div class="card bbm-card">
-          <div class="bbm-info">
-            <h4>${nombre}</h4>
-            <div class="bbm-tags">
-              <span class="badge badge-grupo">💪 ${grupo}</span>
-              <span class="badge badge-equipo">🏋️ ${equipo}</span>
-            </div>
-            ${nota}
-          </div>
+    container.innerHTML = ejercicios.map(ej => `
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <h4 style="margin: 0; font-size: 0.95rem; color: var(--text);">${escapeHTML(ej.nombre)}</h4>
+          <span class="badge" style="background: var(--pastel-bbm-bg); color: var(--pastel-bbm-accent); border: 1px solid var(--pastel-bbm-border);">
+            ${ej.series} x ${ej.repeticiones}
+          </span>
         </div>
-      `;
-    });
+        <div style="font-size: 0.8rem; color: var(--text-dim); display: flex; gap: 12px;">
+          <span><strong>Peso:</strong> ${ej.peso || 'N/A'}</span>
+          ${ej.descanso ? `<span><strong>Descanso:</strong> ${ej.descanso}</span>` : ''}
+        </div>
+        ${ej.notas ? `<p style="font-size: 0.75rem; color: var(--text-dim); margin: 6px 0 0 0; font-style: italic;">${escapeHTML(ej.notas)}</p>` : ''}
+      </div>
+    `).join('');
+  };
 
-    container.innerHTML = html;
-  }
-
-  // Filtro dinámico por Grupo Muscular
-  function filtrarEjercicios(grupo) {
-    if (!grupo || grupo === "Todos") {
-      renderizarEjercicios(datosEjercicios);
-      return;
-    }
-
-    const filtrados = datosEjercicios.filter((item) => {
-      const g = (item.Grupo_Muscular || "").trim().toLowerCase();
-      return g === grupo.toLowerCase();
-    });
-
-    renderizarEjercicios(filtrados);
-  }
-
-  // -------------------------------------------------------------
-  // 2. RENDERIZADO DE RÉCORDS PERSONALES (PRs)
-  // -------------------------------------------------------------
-  function renderizarRecords(items) {
-    const container = document.getElementById("bbmRecordsContainer");
+  const renderRecords = () => {
+    const container = document.getElementById('bbm-records-list');
     if (!container) return;
 
-    if (!items || items.length === 0) {
-      container.innerHTML =
-        "<p style='color: var(--text-dim); text-align: center;'>No hay récords personales guardados.</p>";
+    const records = bbmData.records || [];
+
+    if (records.length === 0) {
+      container.innerHTML = `<p class="error-msg">No hay récords en la hoja bbm_records.</p>`;
       return;
     }
 
-    let html = "";
-    items.forEach((item) => {
-      const ejercicio = item.Ejercicio || "Ejercicio";
-      const peso = item.Peso_KG ? `${item.Peso_KG} kg` : "-";
-      const reps = item.Reps ? `${item.Reps} reps` : "-";
-      const fecha = item.Fecha || "-";
-
-      html += `
-        <div class="card bbm-card record-card">
-          <div class="record-header">
-            <h4>${ejercicio}</h4>
-            <span class="record-date">📅 ${fecha}</span>
-          </div>
-          <div class="record-metrics">
-            <div class="metric-box">
-              <span class="metric-value">${peso}</span>
-              <span class="metric-label">Carga</span>
+    container.innerHTML = `
+      <div class="card">
+        ${records.map(rec => `
+          <div class="record-row">
+            <div>
+              <strong style="font-size: 0.9rem; color: var(--text);">${escapeHTML(rec.ejercicio || rec.Ejercicio)}</strong>
+              <span style="display: block; font-size: 0.7rem; color: var(--text-dim);">${rec.fecha || rec.Fecha || ''}</span>
             </div>
-            <div class="metric-box">
-              <span class="metric-value">${reps}</span>
-              <span class="metric-label">Repeticiones</span>
-            </div>
+            <span style="font-size: 1rem; font-weight: 700; color: var(--pastel-bbm-accent);">${rec.record || rec.Record}</span>
           </div>
-        </div>
-      `;
-    });
+        `).join('')}
+      </div>`;
+  };
 
-    container.innerHTML = html;
-  }
-
-  // -------------------------------------------------------------
-  // 3. RENDERIZADO DE MEDIDAS CORPORALES
-  // -------------------------------------------------------------
-  function renderizarMedidas(items) {
-    const container = document.getElementById("bbmMedidasContainer");
+  const renderMedidas = () => {
+    const container = document.getElementById('bbm-medidas-list');
     if (!container) return;
 
-    if (!items || items.length === 0) {
-      container.innerHTML =
-        "<p style='color: var(--text-dim); text-align: center;'>No hay histórico de medidas registrado.</p>";
+    const medidas = bbmData.medidas || [];
+
+    if (medidas.length === 0) {
+      container.innerHTML = `<p class="error-msg">No hay medidas en la hoja bbm_medidas.</p>`;
       return;
     }
 
-    let html = "";
-    items.forEach((item) => {
-      const fecha = item.Fecha || "-";
-      const peso = item.Peso_KG ? `${item.Peso_KG} kg` : "-";
-      const brazo = item.Brazo_CM ? `${item.Brazo_CM} cm` : "-";
-      const cintura = item.Cintura_CM ? `${item.Cintura_CM} cm` : "-";
-      const pecho = item.Pecho_CM ? `${item.Pecho_CM} cm` : "-";
-
-      html += `
-        <div class="card bbm-card">
-          <div class="medidas-header">
-            <strong>📅 Registro: ${fecha}</strong>
-            <span class="badge badge-peso">⚖️ ${peso}</span>
+    container.innerHTML = `
+      <div class="card">
+        ${medidas.map(m => `
+          <div class="medida-row">
+            <div>
+              <strong style="font-size: 0.9rem; color: var(--text);">${escapeHTML(m.parametro || m.Parametro)}</strong>
+              <span style="display: block; font-size: 0.7rem; color: var(--text-dim);">${m.fecha || m.Fecha || ''}</span>
+            </div>
+            <span style="font-weight: 600; color: var(--text);">${m.valor || m.Valor}</span>
           </div>
-          <div class="medidas-grid">
-            <div><strong>Brazo:</strong> ${brazo}</div>
-            <div><strong>Cintura:</strong> ${cintura}</div>
-            <div><strong>Pecho:</strong> ${pecho}</div>
-          </div>
-        </div>
-      `;
-    });
+        `).join('')}
+      </div>`;
+  };
 
-    container.innerHTML = html;
-  }
+  const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+  const escapeHTML = (str) => str ? str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)) : '';
 
-  // Mostrar error genérico dentro de la subvista de BBM
-  function mostrarErrorGlobal(mensaje) {
-    ["bbmEjerciciosContainer", "bbmRecordsContainer", "bbmMedidasContainer"].forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) el.innerHTML = `<div class="error-msg">⚠️ ${mensaje}</div>`;
-    });
-  }
-
-  // Exponer la función de filtrado al scope global para botones de filtro de la UI
-  window.filtrarEjerciciosBBM = filtrarEjercicios;
-
-  // Inicializar al estar listo el DOM
-  document.addEventListener("DOMContentLoaded", initBBM);
+  return { init, switchTab, fetchAllSheets };
 })();
+
+window.BBMModule = BBMModule;
