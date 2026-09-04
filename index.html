@@ -3,38 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KeepApp</title>
-  <link rel="stylesheet" href="keepapp.css">
+  <title>App Personal</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Librería para procesar CSV del Sheet -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
 
-  <!-- Header -->
+  <!-- Header Fijo -->
   <header>
     <button class="menu-btn" onclick="toggleMenu()">☰</button>
     <h1 class="header-title" id="currentSectionTitle">🛒 Compras</h1>
     <div style="width: 24px;"></div>
   </header>
 
-  <!-- Drawer / Sidebar -->
+  <!-- Drawer / Menú Lateral -->
   <div class="drawer-overlay" id="overlay" onclick="toggleMenu()"></div>
   <nav class="drawer" id="drawer">
     <div class="drawer-header">Menú Principal</div>
     <ul class="drawer-menu">
-      <li><a href="#" onclick="navigate('estudio', 'Estudio')">Estudio</a></li>
-      <li><a href="#" id="link-tareas" onclick="navigate('tareas', 'Tareas')">Tareas</a></li>
-      <li><a href="#" id="link-compras" class="active" onclick="navigate('compras', 'Compras')">Compras</a></li>
-      <li><a href="#" id="link-gastos" onclick="navigate('gastos', 'Gastos')">Gastos</a></li>
-      <li><a href="#" id="link-bbm" onclick="navigate('bbm', 'BBM')">BBM</a></li>
-      <li><a href="#" onclick="navigate('links', 'Links')">Links</a></li>
+      <li><a href="#" id="link-compras" class="active" onclick="navigate('compras', '🛒 Compras')">🛒 Compras</a></li>
+      <li><a href="#" id="link-tareas" onclick="navigate('tareas', '📋 Tareas')">📋 Tareas</a></li>
+      <li><a href="#" id="link-bbm" onclick="navigate('bbm', '🏋️ BBM (Gym)')">🏋️ BBM (Gym)</a></li>
+      <li><a href="#" id="link-estudio" onclick="navigate('estudio', '📚 Estudio')">📚 Estudio</a></li>
+      <li><a href="#" id="link-gastos" onclick="navigate('gastos', '💰 Gastos')">💰 Gastos</a></li>
+      <li><a href="#" id="link-links" onclick="navigate('links', '🔗 Links')">🔗 Links</a></li>
     </ul>
   </nav>
 
-  <!-- Vistas -->
+  <!-- Contenedor Principal de Vistas -->
   <main>
-    <!-- Módulo Compras -->
+
+    <!-- 1. MÓDULO COMPRAS -->
     <section id="view-compras" class="section-view active">
-      <!-- Indicadores Rápidos -->
       <div class="stats-grid">
         <div class="stat-card">
           <span class="stat-val" id="countAgotado">0</span>
@@ -50,25 +51,26 @@
         </div>
       </div>
 
-      <!-- Buscador y filtro -->
       <input type="text" id="searchCompras" class="search-input" placeholder="Buscar producto..." onkeyup="filtrarCompras()">
 
       <div id="comprasContainer">Cargando inventario de compras...</div>
     </section>
 
-    <!-- Módulo Tareas -->
+    <!-- 2. MÓDULO TAREAS -->
     <section id="view-tareas" class="section-view">
       <div id="taskList">Cargando tareas...</div>
     </section>
 
-    <!-- Módulo BBM -->
+    <!-- 3. MÓDULO BBM (GYM) -->
     <section id="view-bbm" class="section-view">
+      <!-- Pestañas internas de BBM -->
       <div class="bbm-tabs">
         <button class="bbm-tab-btn active" onclick="switchBBMTab('ejercicios')">Ejercicios</button>
         <button class="bbm-tab-btn" onclick="switchBBMTab('records')">Récords</button>
         <button class="bbm-tab-btn" onclick="switchBBMTab('medidas')">Medidas</button>
       </div>
 
+      <!-- Subvista Ejercicios por Día -->
       <div id="bbm-ejercicios" class="bbm-subview active">
         <select id="daySelector" class="day-select" onchange="renderizarEjerciciosPorDia()">
           <option value="Lunes">Lunes</option>
@@ -82,21 +84,45 @@
         <div id="exerciseList">Cargando ejercicios...</div>
       </div>
 
+      <!-- Subvista Récords (PRs) -->
       <div id="bbm-records" class="bbm-subview">
-        <div id="recordsList">Cargando récords...</div>
+        <div id="recordsList">Cargando récords personales...</div>
       </div>
 
+      <!-- Subvista Medidas Corporales -->
       <div id="bbm-medidas" class="bbm-subview">
-        <div id="medidasList">Cargando medidas...</div>
+        <div id="medidasList">Cargando historial de medidas...</div>
       </div>
     </section>
 
-    <!-- Vistas restantes -->
-    <section id="view-estudio" class="section-view"><p>Módulo de Estudio...</p></section>
-    <section id="view-gastos" class="section-view"><p>Módulo de Gastos...</p></section>
-    <section id="view-links" class="section-view"><p>Módulo de Links...</p></section>
+    <!-- 4. MÓDULO ESTUDIO -->
+    <section id="view-estudio" class="section-view">
+      <div id="estudioContainer">Cargando recursos de estudio...</div>
+    </section>
+
+    <!-- 5. MÓDULO GASTOS -->
+    <section id="view-gastos" class="section-view">
+      <div id="gastosContainer">Cargando historial de gastos...</div>
+    </section>
+
+    <!-- 6. MÓDULO LINKS -->
+    <section id="view-links" class="section-view">
+      <div id="linksContainer">Cargando enlaces...</div>
+    </section>
+
   </main>
 
+  <!-- SCRIPTS -->
+  <!-- Script Principal (Orquestador de Navegación y UI Base) -->
   <script src="app.js"></script>
+
+  <!-- Scripts Modulares e Independientes -->
+  <script src="js/compras.js"></script>
+  <script src="js/tareas.js"></script>
+  <script src="js/bbm.js"></script>
+  <script src="js/estudio.js"></script>
+  <script src="js/gastos.js"></script>
+  <script src="js/links.js"></script>
+
 </body>
 </html>
