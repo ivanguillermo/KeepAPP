@@ -362,6 +362,11 @@ main, main.content-area {
 /* ==========================================
    6. MÓDULO: BBM / GYM (Estilo Pastel Esmeralda)
    ========================================== */
+.section-content { display: none; }
+.section-content.active { display: block; }
+.bbm-tab-content { display: none; }
+.bbm-tab-content.active { display: block; }
+
 #view-bbm .card {
   background: #ffffff;
   border-top: 3px solid var(--pastel-bbm-accent);
