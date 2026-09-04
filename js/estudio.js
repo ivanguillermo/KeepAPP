@@ -4,7 +4,7 @@
  */
 (function () {
   const SHEET_ID = "1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw";
-  const URL_ESTUDIO = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=benkyou`;
+  const URL_ESTUDIO = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=estudios`;
 
   let datosEstudio = [];
   let subseccionActual = "UNA"; // 'UNA' | 'UNEY' | 'Cursos'
@@ -48,11 +48,10 @@
     // Actualizar estados visuales de los botones
     document.querySelectorAll(".estudio-tab-btn").forEach((btn) => {
       btn.classList.remove("active");
+      if (btn.innerText.trim().toUpperCase() === subseccion.toUpperCase()) {
+        btn.classList.add("active");
+      }
     });
-
-    if (event && event.target) {
-      event.target.classList.add("active");
-    }
 
     renderizarSubseccion(subseccionActual);
   }
