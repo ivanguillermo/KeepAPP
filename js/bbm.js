@@ -68,8 +68,8 @@
     let html = "";
     items.forEach((item) => {
       const nombre = item.Ejercicio || "Ejercicio sin nombre";
-      const grupo = item.Grupo_Muscular || "General";
-      const equipo = item.Equipo || "Corporal";
+      const grupo = item.Series || "";
+      const equipo = item.Repeticiones || "";
       const nota = item.Notas ? `<p class="bbm-notes">💡 ${item.Notas}</p>` : "";
 
       html += `
