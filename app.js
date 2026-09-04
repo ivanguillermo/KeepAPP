@@ -112,3 +112,74 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnMenu) btnMenu.addEventListener("click", toggleMenu);
   if (overlay) overlay.addEventListener("click", toggleMenu);
 });
+// Función global para alternar el menú lateral (Drawer)
+function toggleMenu() {
+  const drawer = document.getElementById("drawer");
+  const overlay = document.getElementById("drawer-overlay");
+  if (drawer && overlay) {
+    drawer.classList.toggle("open");
+    overlay.classList.toggle("active");
+  }
+}
+
+// Función global para cambiar entre secciones principales
+function switchSection(sectionId, title) {
+  // 1. Ocultar todas las secciones
+  const sections = document.querySelectorAll(".section-content");
+  sections.forEach((sec) => sec.classList.remove("active"));
+
+  // 2. Mostrar la sección seleccionada
+  const targetSection = document.getElementById(sectionId);
+  if (targetSection) {
+    targetSection.classList.add("active");
+  }
+
+  // 3. Actualizar título del header
+  const titleEl = document.getElementById("app-title");
+  if (titleEl) titleEl.textContent = title;
+
+  // 4. Actualizar estado activo en el menú nav
+  const navItems = document.querySelectorAll(".nav-item");
+  navItems.forEach((btn) => btn.classList.remove("active"));
+  
+  const currentBtn = Array.from(navItems).find((btn) =>
+    btn.getAttribute("onclick")?.includes(sectionId)
+  );
+  if (currentBtn) currentBtn.classList.add("active");
+
+  // 5. Cerrar el menú desplegable
+  toggleMenu();
+}
+
+// Función global para sub-pestañas de BBM
+function switchBBMTab(tabName) {
+  const tabs = document.querySelectorAll(".bbm-tab-content");
+  tabs.forEach((tab) => tab.classList.remove("active"));
+
+  const targetTab = document.getElementById(`bbm-tab-${tabName}`);
+  if (targetTab) targetTab.classList.add("active");
+
+  // Estilos de botones de pestaña
+  const parent = event?.target?.parentElement;
+  if (parent) {
+    const btns = parent.querySelectorAll(".tab-btn");
+    btns.forEach((b) => b.classList.remove("active"));
+    if (event.target) event.target.classList.add("active");
+  }
+}
+
+// Inicialización general al cargar el DOM
+document.addEventListener("DOMContentLoaded", () => {
+  const btnMenu = document.getElementById("btn-menu");
+  const overlay = document.getElementById("drawer-overlay");
+
+  if (btnMenu) btnMenu.addEventListener("click", toggleMenu);
+  if (overlay) overlay.addEventListener("click", toggleMenu);
+
+  // Inicializar módulos registrados
+  if (window.ComprasModule && typeof ComprasModule.init === "function") ComprasModule.init();
+  if (window.TareasModule && typeof TareasModule.init === "function") TareasModule.init();
+  if (window.BBMModule && typeof BBMModule.init === "function") BBMModule.init();
+  if (window.EstudioModule && typeof EstudioModule.init === "function") EstudioModule.init();
+  if (window.GoalsModule && typeof GoalsModule.init === "function") GoalsModule.init();
+});
