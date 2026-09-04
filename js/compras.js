@@ -1,144 +1,143 @@
-/**
- * Módulo Independiente: Compras / Mercado
- * Archivo: js/compras.js
- */
-(function () {
-  const SHEET_ID = "1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw";
-  const URL_COMPRAS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=compras`;
+/* ==========================================
+   MÓDULO: COMPRAS - KEEPAPP
+   Carga con PapaParse desde Google Sheets (CSV)
+   ========================================== */
 
-  let datosCompras = [];
+const ComprasModule = (() => {
+  const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
+  const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=compras`;
 
-  // Inicialización segura del módulo
-  function initCompras() {
-    try {
-      const container = document.getElementById("comprasContainer");
-      if (!container) return;
+  let comprasData = [];
+  let filterText = '';
 
-      const url = `${URL_COMPRAS}&_nocache=${new Date().getTime()}`;
+  /* ------------------------------------------
+     1. INICIALIZACIÓN Y CARGA DE DATOS
+     ------------------------------------------ */
+  const init = () => {
+    setupEventListeners();
+    fetchCompras();
+  };
 
-      Papa.parse(url, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: function (results) {
-          try {
-            datosCompras = results.data || [];
-            actualizarResumen(datosCompras);
-            renderizarLista(datosCompras);
-          } catch (errRender) {
-            console.error("Error al procesar datos de compras:", errRender);
-            mostrarError("Error al procesar los datos de la hoja de compras.");
-          }
-        },
-        error: function (errParse) {
-          console.error("Error al descargar CSV de compras:", errParse);
-          mostrarError("No se pudo conectar con la hoja de Google Sheets.");
-        }
+  const setupEventListeners = () => {
+    const searchInput = document.getElementById('compras-search');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        filterText = e.target.value.toLowerCase();
+        renderList();
       });
-    } catch (error) {
-      console.error("Error crítico en initCompras:", error);
-      mostrarError("Ocurrió un error inesperado al cargar el módulo de compras.");
     }
-  }
+  };
 
-  // Actualizar contadores superiores (Agotados, Por agotar, Suficiente)
-  function actualizarResumen(items) {
-    let agotados = 0;
-    let porAgotar = 0;
-    let suficiente = 0;
-
-    items.forEach((item) => {
-      const estado = (item.Estado || "").trim().toLowerCase();
-      if (estado === "agotado") agotados++;
-      else if (estado === "por agotar") porAgotar++;
-      else if (estado === "suficiente") suficiente++;
-    });
-
-    const elAgotado = document.getElementById("countAgotado");
-    const elPorAgotar = document.getElementById("countPorAgotar");
-    const elSuficiente = document.getElementById("countSuficiente");
-
-    if (elAgotado) elAgotado.innerText = agotados;
-    if (elPorAgotar) elPorAgotar.innerText = porAgotar;
-    if (elSuficiente) elSuficiente.innerText = suficiente;
-  }
-
-  // Renderizar tarjetas de productos
-  function renderizarLista(items) {
-    const container = document.getElementById("comprasContainer");
-    if (!container) return;
-
-    if (!items || items.length === 0) {
-      container.innerHTML =
-        "<p style='color: var(--text-dim); text-align: center;'>No hay registros de productos en el mercado.</p>";
+  const fetchCompras = () => {
+    if (typeof Papa === 'undefined') {
+      console.error('PapaParse no está disponible.');
       return;
     }
 
-    let html = "";
+    Papa.parse(CSV_URL, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        comprasData = processCompras(results.data);
+        renderStats();
+        renderList();
+      },
+      error: (err) => {
+        console.error('Error al cargar la pestaña compras:', err);
+      }
+    });
+  };
 
-    items.forEach((item) => {
-      const producto = item.Producto || "Sin nombre";
-      const unidad = item.Unidad ? `(${item.Unidad})` : "";
-      const categoria = item.Categoria || "General";
-      const precioUSD = item.Precio_USD ? `$${item.Precio_USD}` : "-";
-      const precioVES = item.Precio_VES ? `Bs. ${item.Precio_VES}` : "-";
-      const ultimaCompra = item.Ultima_Compra || "-";
-      const duracion = item.Duracion_Dias ? `~${item.Duracion_Dias} días` : "-";
-      const estadoRaw = (item.Estado || "Suficiente").trim();
+  const processCompras = (data) => {
+    return data.map(item => ({
+      producto: item.producto || item.Producto || item.item || item.Item || '',
+      categoria: item.categoria || item.Categoria || 'General',
+      estado: (item.estado || item.Estado || 'suficiente').toLowerCase().trim(),
+      precioUSD: item.precio || item.precio_usd || item.Precio || '0',
+      precioVES: item.precio_ves || item.ves || item.PrecioVES || '',
+      cantidad: item.cantidad || item.Cantidad || '',
+      notas: item.notas || item.Notas || ''
+    })).filter(c => c.producto.trim() !== '');
+  };
 
-      // Mapeo de estilos según estado
-      let classStatus = "status-suficiente";
-      const estadoLower = estadoRaw.toLowerCase();
-      if (estadoLower === "agotado") classStatus = "status-agotado";
-      else if (estadoLower === "por agotar") classStatus = "status-por-agotar";
+  /* ------------------------------------------
+     2. RENDERIZADO DE ESTADÍSTICAS Y LISTA
+     ------------------------------------------ */
+  const renderStats = () => {
+    const totalEl = document.getElementById('compras-stat-total');
+    const porAgotarEl = document.getElementById('compras-stat-agotar');
+    const agotadosEl = document.getElementById('compras-stat-agotados');
 
-      html += `
+    const total = comprasData.length;
+    const porAgotar = comprasData.filter(i => i.estado.includes('por agotar') || i.estado.includes('por_agotar')).length;
+    const agotados = comprasData.filter(i => i.estado.includes('agotado')).length;
+
+    if (totalEl) totalEl.textContent = total;
+    if (porAgotarEl) porAgotarEl.textContent = porAgotar;
+    if (agotadosEl) agotadosEl.textContent = agotados;
+  };
+
+  const renderList = () => {
+    const container = document.getElementById('compras-list');
+    if (!container) return;
+
+    const filtered = comprasData.filter(c => 
+      c.producto.toLowerCase().includes(filterText) ||
+      c.categoria.toLowerCase().includes(filterText)
+    );
+
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div class="card" style="text-align: center; color: var(--text-dim);">
+          <p style="margin: 0;">No se encontraron artículos de compra.</p>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = filtered.map(item => {
+      const statusClass = getStatusClass(item.estado);
+
+      return `
         <div class="card compras-card">
-          <div class="compras-info">
-            <h4>${producto} <span style="font-weight:normal; color:var(--text-dim);">${unidad}</span></h4>
-            <div class="compras-details">
-              🏷️ ${categoria} <br>
-              📅 Última compra: ${ultimaCompra} (Dura ${duracion})
+          <div class="compras-info" style="flex: 1; padding-right: 12px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <span class="badge ${statusClass}">
+                ${capitalize(item.estado.replace('_', ' '))}
+              </span>
+              <span class="badge" style="background: #f1f5f9; color: var(--text-dim); border: 1px solid var(--border-color);">
+                ${escapeHTML(item.categoria)}
+              </span>
             </div>
-            <span class="badge ${classStatus}">${estadoRaw}</span>
+            <h4>${escapeHTML(item.producto)}</h4>
+            <div class="compras-details">
+              ${item.cantidad ? `<span><strong>Cantidad:</strong> ${escapeHTML(item.cantidad)}</span>` : ''}
+              ${item.notas ? `<br><span>${escapeHTML(item.notas)}</span>` : ''}
+            </div>
           </div>
+
           <div class="prices">
-            <div class="price-usd">${precioUSD}</div>
-            <div class="price-ves">${precioVES}</div>
+            ${item.precioUSD ? `<div class="price-usd">$${escapeHTML(item.precioUSD)}</div>` : ''}
+            ${item.precioVES ? `<div class="price-ves">Bs. ${escapeHTML(item.precioVES)}</div>` : ''}
           </div>
         </div>
       `;
-    });
+    }).join('');
+  };
 
-    container.innerHTML = html;
-  }
+  /* ------------------------------------------
+     3. UTILIDADES
+     ------------------------------------------ */
+  const getStatusClass = (estado) => {
+    if (estado.includes('por agotar') || estado.includes('por_agotar')) return 'status-por-agotar';
+    if (estado.includes('agotado')) return 'status-agotado';
+    return 'status-suficiente';
+  };
 
-  // Búsqueda / Filtro en tiempo real
-  function filtrarCompras() {
-    const input = document.getElementById("searchCompras");
-    if (!input) return;
+  const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+  const escapeHTML = (str) => str ? String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)) : '';
 
-    const texto = input.value.toLowerCase().trim();
-    const filtrados = datosCompras.filter((item) => {
-      const prod = (item.Producto || "").toLowerCase();
-      const cat = (item.Categoria || "").toLowerCase();
-      return prod.includes(texto) || cat.includes(texto);
-    });
-
-    renderizarLista(filtrados);
-  }
-
-  // Mostrar mensaje de error aislado en el contenedor del módulo
-  function mostrarError(mensaje) {
-    const container = document.getElementById("comprasContainer");
-    if (container) {
-      container.innerHTML = `<div class="error-msg">⚠️ ${mensaje}</div>`;
-    }
-  }
-
-  // Exponer únicamente la función de filtro al ámbito global para el evento onkeyup
-  window.filtrarCompras = filtrarCompras;
-
-  // Cargar datos al estar listo el DOM
-  document.addEventListener("DOMContentLoaded", initCompras);
+  return { init, fetchCompras };
 })();
+
+window.ComprasModule = ComprasModule;
