@@ -1,24 +1,64 @@
 /* ==========================================
-   1. VARIABLES Y CONFIGURACIÓN GLOBAL
+   1. VARIABLES Y CONFIGURACIÓN GLOBAL (LIGHT PASTEL)
    ========================================== */
 :root {
-  --bg: #0f172a;
-  --card-bg: #1e293b;
-  --accent: #38bdf8;
-  --text: #f8fafc;
-  --text-dim: #94a3b8;
-  --drawer-bg: #182234;
-  --border-color: rgba(255, 255, 255, 0.1);
+  /* Fondo general y tarjetas base */
+  --bg: #f8fafc;
+  --card-bg: #ffffff;
+  --text: #1e293b;
+  --text-dim: #64748b;
+  --drawer-bg: #ffffff;
+  --border-color: #e2e8f0;
 
-  /* Estados y Colores Semánticos */
-  --danger: #ef4444;
-  --danger-bg: rgba(239, 68, 68, 0.2);
-  --warning: #f59e0b;
-  --warning-bg: rgba(245, 158, 11, 0.2);
-  --success: #10b981;
-  --success-bg: rgba(16, 185, 129, 0.2);
-  --info: #8b5cf6;
-  --info-bg: rgba(139, 92, 246, 0.2);
+  /* Identificador de marca / Acento principal (Lavanda) */
+  --accent: #8b5cf6;
+  --accent-light: #ede9fe;
+
+  /* Estados y Colores Semánticos (Tonos Pastel Soft) */
+  --danger: #e11d48;
+  --danger-bg: #ffe4e6;
+  --warning: #d97706;
+  --warning-bg: #fef3c7;
+  --success: #059669;
+  --success-bg: #d1fae5;
+  --info: #2563eb;
+  --info-bg: #dbeafe;
+
+  /* PALETA PASTEL POR MÓDULOS / SECCIONES */
+  /* Compras (Rosa Menta Soft) */
+  --pastel-compras-accent: #e11d48;
+  --pastel-compras-bg: #fff1f2;
+  --pastel-compras-border: #fecdd3;
+
+  /* Tareas (Melocotón / Ámbar Soft) */
+  --pastel-tareas-accent: #d97706;
+  --pastel-tareas-bg: #fffbeb;
+  --pastel-tareas-border: #fde68a;
+
+  /* BBM / Gym (Menta / Esmeralda Soft) */
+  --pastel-bbm-accent: #059669;
+  --pastel-bbm-bg: #ecfdf5;
+  --pastel-bbm-border: #a7f3d0;
+
+  /* Estudio (Celeste Soft) */
+  --pastel-estudio-accent: #0284c7;
+  --pastel-estudio-bg: #f0f9ff;
+  --pastel-estudio-border: #bae6fd;
+
+  /* Gastos (Lila Soft) */
+  --pastel-gastos-accent: #7c3aed;
+  --pastel-gastos-bg: #f5f3ff;
+  --pastel-gastos-border: #ddd6fe;
+
+  /* Links & Cine (Verde Té Soft) */
+  --pastel-links-accent: #0d9488;
+  --pastel-links-bg: #f0fdfa;
+  --pastel-links-border: #99f6e4;
+
+  /* Goals / Metas (Rosa Pastel Soft) */
+  --pastel-goals-accent: #db2777;
+  --pastel-goals-bg: #fdf2f8;
+  --pastel-goals-border: #fbcfe8;
 }
 
 * {
@@ -37,7 +77,7 @@ body {
 /* ==========================================
    2. HEADER Y NAVEGACIÓN PRINCIPAL (DRAWER)
    ========================================== */
-header {
+header, #navbar {
   background: var(--card-bg);
   display: flex;
   align-items: center;
@@ -45,35 +85,38 @@ header {
   padding: 14px 18px;
   position: sticky;
   top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .menu-btn {
   background: none;
   border: none;
   color: var(--text);
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   cursor: pointer;
   padding: 0;
 }
 
 .header-title {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: var(--accent);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
-/* Overlay y Drawer */
+/* Overlay y Drawer Lateral */
 .drawer-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(15, 23, 42, 0.3);
+  backdrop-filter: blur(2px);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
-  z-index: 200;
+  z-index: 2000;
 }
 
 .drawer-overlay.active {
@@ -86,11 +129,12 @@ header {
   top: 0; left: -280px;
   width: 280px; height: 100%;
   background: var(--drawer-bg);
-  z-index: 201;
-  transition: transform 0.3s ease;
+  z-index: 2001;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
   padding: 20px 0;
+  border-right: 1px solid var(--border-color);
 }
 
 .drawer.active {
@@ -100,8 +144,8 @@ header {
 .drawer-header {
   padding: 0 20px 20px 20px;
   border-bottom: 1px solid var(--border-color);
-  font-size: 1.2rem;
-  font-weight: bold;
+  font-size: 1.1rem;
+  font-weight: 700;
   color: var(--accent);
 }
 
@@ -115,16 +159,17 @@ header {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 20px;
+  padding: 12px 20px;
   color: var(--text-dim);
   text-decoration: none;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
   transition: background 0.2s, color 0.2s;
 }
 
 .drawer-menu li a.active,
 .drawer-menu li a:hover {
-  background: rgba(56, 189, 248, 0.15);
+  background: var(--accent-light);
   color: var(--accent);
   border-left: 4px solid var(--accent);
 }
@@ -132,9 +177,9 @@ header {
 /* ==========================================
    3. ESTRUCTURA DE VISTAS Y COMPONENTES BASE
    ========================================== */
-main {
+main, main.content-area {
   padding: 16px;
-  padding-bottom: 40px;
+  padding-bottom: 240px; /* Margen para asegurar que el reproductor no tape contenido */
   max-width: 800px;
   margin: 0 auto;
 }
@@ -150,29 +195,30 @@ main {
 .card {
   background: var(--card-bg);
   border-radius: 12px;
-  padding: 14px;
+  padding: 16px;
   margin-bottom: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--border-color);
 }
 
-.search-input, .select-input {
+.search-input, .select-input, .day-select {
   width: 100%;
   padding: 10px 14px;
-  background: var(--card-bg);
+  background: #f1f5f9;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   color: var(--text);
   margin-bottom: 16px;
   font-size: 0.95rem;
   outline: none;
+  transition: border-color 0.2s, background 0.2s;
 }
 
-.search-input:focus, .select-input:focus {
+.search-input:focus, .select-input:focus, .day-select:focus {
   border-color: var(--accent);
+  background: #ffffff;
 }
 
-/* Estado de Error en Módulos */
 .error-msg {
   background: var(--danger-bg);
   color: var(--danger);
@@ -180,21 +226,26 @@ main {
   border-radius: 8px;
   font-size: 0.85rem;
   text-align: center;
-  border: 1px solid var(--danger);
+  border: 1px solid rgba(225, 29, 72, 0.2);
 }
 
-/* Badges / Etiquetas genericas */
 .badge {
   display: inline-block;
-  font-size: 0.65rem;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: bold;
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 600;
 }
 
 /* ==========================================
-   4. MÓDULO: COMPRAS
+   4. MÓDULO: COMPRAS (Estilo Pastel Rosa)
    ========================================== */
+#view-compras .card,
+.compras-card {
+  background: var(--pastel-compras-bg);
+  border: 1px solid var(--pastel-compras-border);
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -212,14 +263,16 @@ main {
 
 .stat-val {
   display: block;
-  font-size: 1.3rem;
-  font-weight: bold;
-  color: var(--accent);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--pastel-compras-accent);
 }
 
 .stat-lbl {
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .compras-card {
@@ -231,10 +284,11 @@ main {
 .compras-info h4 {
   margin: 0 0 4px 0;
   font-size: 0.95rem;
+  color: var(--text);
 }
 
 .compras-details {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: var(--text-dim);
   line-height: 1.4;
 }
@@ -245,9 +299,9 @@ main {
 }
 
 .price-usd {
-  font-size: 1.05rem;
-  font-weight: bold;
-  color: var(--accent);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--pastel-compras-accent);
 }
 
 .price-ves {
@@ -255,48 +309,71 @@ main {
   color: var(--text-dim);
 }
 
-.status-suficiente { background: var(--success-bg); color: var(--success); }
-.status-por-agotar { background: var(--warning-bg); color: var(--warning); }
-.status-agotado { background: var(--danger-bg); color: var(--danger); }
+.status-suficiente { 
+  background: var(--success-bg); 
+  color: var(--success); 
+  border: 1px solid rgba(5, 150, 105, 0.2);
+}
+
+.status-por-agotar { 
+  background: var(--warning-bg); 
+  color: var(--warning); 
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.status-agotado { 
+  background: var(--danger-bg); 
+  color: var(--danger); 
+  border: 1px solid rgba(225, 29, 72, 0.2);
+}
 
 /* ==========================================
-   5. MÓDULO: TAREAS
+   5. MÓDULO: TAREAS (Estilo Pastel Ámbar)
    ========================================== */
+#view-tareas .task-card,
 .task-card {
+  background: var(--pastel-tareas-bg);
+  border: 1px solid var(--pastel-tareas-border);
+  border-left: 4px solid var(--pastel-tareas-accent);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-left: 4px solid var(--accent);
 }
 
 .task-card h3 {
-  margin: 0 0 6px 0;
+  margin: 0 0 4px 0;
   font-size: 0.95rem;
+  color: var(--text);
 }
 
 .score-tag {
   text-align: right;
   font-size: 1.1rem;
-  font-weight: bold;
-  color: #4ade80;
+  font-weight: 700;
+  color: var(--pastel-tareas-accent);
 }
 
 .score-label {
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   color: var(--text-dim);
   display: block;
 }
 
 /* ==========================================
-   6. MÓDULO: BBM (GYM)
+   6. MÓDULO: BBM / GYM (Estilo Pastel Esmeralda)
    ========================================== */
+#view-bbm .card {
+  background: #ffffff;
+  border-top: 3px solid var(--pastel-bbm-accent);
+}
+
 .bbm-tabs {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 16px;
-  background: var(--card-bg);
-  padding: 6px;
-  border-radius: 10px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 8px;
 }
 
 .bbm-tab-btn {
@@ -313,8 +390,9 @@ main {
 }
 
 .bbm-tab-btn.active {
-  background: var(--accent);
-  color: var(--bg);
+  background: var(--pastel-bbm-bg);
+  color: var(--pastel-bbm-accent);
+  border: 1px solid var(--pastel-bbm-border);
 }
 
 .bbm-subview {
@@ -325,22 +403,11 @@ main {
   display: block;
 }
 
-.day-select {
-  width: 100%;
-  padding: 10px;
-  background: var(--card-bg);
-  color: var(--text);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 1rem;
-  margin-bottom: 16px;
-}
-
 .record-row, .medida-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
+  padding: 10px 0;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -363,22 +430,17 @@ main {
   }
 }
 
-.link-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  text-decoration: none;
-  color: var(--text);
-  transition: transform 0.15s ease, border-color 0.15s ease;
+/* Módulo Estudio (Pastel Celeste) */
+#view-estudio .card {
+  background: var(--pastel-estudio-bg);
+  border: 1px solid var(--pastel-estudio-border);
 }
 
-.link-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent);
-}
-
+/* Módulo Gastos (Pastel Lila) */
+#view-gastos .card,
 .gastos-summary {
-  background: var(--card-bg);
+  background: var(--pastel-gastos-bg);
+  border: 1px solid var(--pastel-gastos-border);
   padding: 16px;
   border-radius: 12px;
   margin-bottom: 16px;
@@ -387,60 +449,42 @@ main {
   text-align: center;
 }
 
-/* Layout Base: Navbar Superior Fija */
-#navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 60px;
-  z-index: 1000;
-  background-color: #121212;
+/* Módulo Links / Cine (Pastel Verde Té) */
+#view-links .link-card,
+.link-card {
+  background: var(--pastel-links-bg);
+  border: 1px solid var(--pastel-links-border);
+  padding: 14px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 500;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-/* Contenedor Principal */
-main.content-area {
-  margin-top: 60px;
-  padding: 20px;
-}
-
-/* Reproductor Persistente con Dimensiones Fijas */
-#player-container {
-  position: fixed;
-  bottom: 0;
-  right: 20px;
-  width: 380px;  /* Ancho fijo siempre */
-  height: 220px; /* Alto fijo siempre */
-  background: #000;
-  border-radius: 8px 8px 0 0;
-  overflow: hidden;
-  box-shadow: 0 -4px 12px rgba(0,0,0,0.5);
-  z-index: 999;
-}
-
-#player-container #media-frame {
-  width: 100%;
-  height: calc(100% - 40px);
-  object-fit: contain; /* Previene distorsión del contenido */
+.link-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
 }
 
 /* ==========================================
-   MÓDULO GOALS / METAS
+   8. MÓDULO GOALS / METAS (Pastel Rosa Soft)
    ========================================== */
-
-/* Barra de pestañas horizontal desplazable */
 .goals-tabs-scroll {
   display: flex;
   gap: 8px;
   overflow-x: auto;
   padding: 4px 0 12px 0;
   margin-bottom: 15px;
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
 
 .goals-tabs-scroll::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
+  display: none;
 }
 
 .goals-tab-btn {
@@ -450,18 +494,26 @@ main.content-area {
   font-size: 0.85rem;
   font-weight: 600;
   border-radius: 20px;
+  background: #f1f5f9;
+  border: 1px solid var(--border-color);
+  color: var(--text-dim);
+  cursor: pointer;
 }
 
-/* Envoltorio de cada tarjeta para efecto Swipe */
+.goals-tab-btn.active {
+  background: var(--pastel-goals-bg);
+  color: var(--pastel-goals-accent);
+  border-color: var(--pastel-goals-border);
+}
+
 .swipe-item-wrapper {
   position: relative;
   overflow: hidden;
   margin-bottom: 10px;
   border-radius: 10px;
-  background-color: #2b2b3d; /* Fondo que se revela detrás */
+  background-color: var(--success-bg);
 }
 
-/* Contenido frontal de la tarjeta */
 .swipe-content {
   position: relative;
   z-index: 2;
@@ -469,21 +521,20 @@ main.content-area {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--card-bg, #1e1e2d);
+  background: var(--pastel-goals-bg);
   padding: 14px 16px;
-  margin-bottom: 0 !important;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--pastel-goals-border);
+  border-radius: 10px;
   user-select: none;
 }
 
-/* Botón revelado al deslizar a la izquierda */
 .swipe-action-btn {
   position: absolute;
   right: 0;
   top: 0;
   bottom: 0;
   width: 80px;
-  background-color: #2e7d32;
+  background-color: var(--success);
   color: #ffffff;
   border: none;
   font-weight: 700;
@@ -493,19 +544,12 @@ main.content-area {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: inset 2px 0 5px rgba(0,0,0,0.2);
 }
 
-.swipe-action-btn:active {
-  background-color: #1b5e20;
-}
-
-/* Desplazamiento de la tarjeta cuando se hace Swipe */
 .swipe-item-wrapper.swiped .swipe-content {
   transform: translateX(-80px);
 }
 
-/* Estilos de las metas */
 .goal-info {
   display: flex;
   flex-direction: column;
@@ -516,37 +560,52 @@ main.content-area {
 .goal-text {
   font-size: 0.95rem;
   font-weight: 500;
-  color: var(--text-color, #ffffff);
+  color: var(--text);
   line-height: 1.3;
 }
 
-/* Estado de Meta Lograda / Completada */
 .goal-card.completed {
-  opacity: 0.65;
-  background-color: rgba(46, 125, 50, 0.12) !important;
-  border-left: 4px solid #4caf50;
+  opacity: 0.6;
+  background-color: #f1f5f9 !important;
+  border-color: var(--border-color) !important;
+  border-left: 4px solid var(--success) !important;
 }
 
 .goal-card.completed .goal-text {
   text-decoration: line-through;
-  color: #a0a0b0;
+  color: var(--text-dim);
 }
 
-/* Badges de estado */
-.status-por-agotar {
-  background-color: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  font-size: 0.75rem;
-  padding: 4px 8px;
-  border-radius: 6px;
+/* ==========================================
+   9. REPRODUCTOR PERSISTENTE FIJO
+   ========================================== */
+#player-container {
+  position: fixed;
+  bottom: 0;
+  right: 20px;
+  width: 380px;
+  height: 220px;
+  background: #0f172a;
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1500;
+  border: 1px solid var(--border-color);
+  border-bottom: none;
 }
 
-.status-suficiente {
-  background-color: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  font-size: 0.75rem;
-  padding: 4px 8px;
-  border-radius: 6px;
+#player-container #media-frame {
+  width: 100%;
+  height: calc(100% - 30px);
+  object-fit: contain;
+}
+
+/* Ajuste responsive para pantallas pequeñas */
+@media (max-width: 480px) {
+  #player-container {
+    right: 0;
+    width: 100%;
+    height: 200px;
+    border-radius: 12px 12px 0 0;
+  }
 }
