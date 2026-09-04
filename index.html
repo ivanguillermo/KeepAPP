@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>App Personal</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="keepapp.css">
   <!-- Librería para procesar CSV del Sheet -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
@@ -22,12 +22,12 @@
   <nav class="drawer" id="drawer">
     <div class="drawer-header">Menú Principal</div>
     <ul class="drawer-menu">
-      <li><a href="#" id="link-compras" class="active" onclick="navigate('compras', '🛒 Compras')">🛒 Compras</a></li>
-      <li><a href="#" id="link-tareas" onclick="navigate('tareas', '📋 Tareas')">📋 Tareas</a></li>
-      <li><a href="#" id="link-bbm" onclick="navigate('bbm', '🏋️ BBM (Gym)')">🏋️ BBM (Gym)</a></li>
-      <li><a href="#" id="link-estudio" onclick="navigate('estudio', '📚 Estudio')">📚 Estudio</a></li>
-      <li><a href="#" id="link-gastos" onclick="navigate('gastos', '💰 Gastos')">💰 Gastos</a></li>
-      <li><a href="#" id="link-links" onclick="navigate('links', '🔗 Links')">🔗 Links</a></li>
+      <li><a href="#" id="link-compras" class="active" onclick="navigate('compras', 'Compras')">Compras</a></li>
+      <li><a href="#" id="link-tareas" onclick="navigate('tareas', 'Tareas')">Tareas</a></li>
+      <li><a href="#" id="link-bbm" onclick="navigate('bbm', 'BBM')">BBM</a></li>
+      <li><a href="#" id="link-estudio" onclick="navigate('estudio', 'Estudio')">Estudio</a></li>
+      <li><a href="#" id="link-gastos" onclick="navigate('gastos', 'Gastos')">Gastos</a></li>
+      <li><a href="#" id="link-links" onclick="navigate('links', 'Links')">Links</a></li>
     </ul>
   </nav>
 
@@ -61,7 +61,7 @@
       <div id="taskList">Cargando tareas...</div>
     </section>
 
-    <!-- 3. MÓDULO BBM (GYM) -->
+    <!-- 3. MÓDULO BBM-->
     <section id="view-bbm" class="section-view">
       <!-- Pestañas internas de BBM -->
       <div class="bbm-tabs">
