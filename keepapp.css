@@ -60,7 +60,190 @@
   --pastel-goals-bg: #fdf2f8;
   --pastel-goals-border: #fbcfe8;
 }
+/* Reset y layout base */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+}
 
+body {
+  background-color: #f4f6f8;
+  color: #333;
+}
+
+/* Ocultar secciones por defecto */
+.section-content {
+  display: none !important;
+}
+
+.section-content.active {
+  display: block !important;
+}
+
+/* BBM Tabs */
+.bbm-tab-content {
+  display: none !important;
+}
+
+.bbm-tab-content.active {
+  display: block !important;
+}
+
+/* Header */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+/* Drawer / Menú Lateral Flotante */
+.drawer-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 200;
+}
+
+.drawer-overlay.active {
+  display: block;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  left: -280px;
+  width: 280px;
+  height: 100vh;
+  background: #ffffff;
+  z-index: 201;
+  transition: transform 0.3s ease;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+  padding: 20px;
+}
+
+.drawer.open {
+  transform: translateX(280px);
+}
+
+.drawer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 1rem;
+  cursor: pointer;
+  width: 100%;
+}
+
+.nav-item.active, .nav-item:hover {
+  background: #f0f3f6;
+  font-weight: bold;
+}
+
+/* Contenedor Principal */
+.main-container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 0 16px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.search-input, .select-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.95rem;
+}
+
+/* Pestanas secundarias (Subnav) */
+.subnav-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 8px;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  padding: 6px 16px;
+  border: none;
+  background: #e5e7eb;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+.tab-btn.active {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+/* Grillas y Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.stat-card {
+  background: #f9fafb;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #f3f4f6;
+}
+
+.stat-val {
+  display: block;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.stat-lbl {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
 * {
   box-sizing: border-box;
 }
