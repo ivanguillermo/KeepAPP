@@ -1,132 +1,82 @@
 /**
- * Application Core & Navigation Controller
+ * Orquestador Principal (app.js)
+ * Manejo del menú lateral (Drawer) y navegación entre secciones.
  */
 
-// State Management
-const appState = {
-  activeTab: 'movies', // 'movies' | 'books'
-  currentMedia: null,
-  isPlaying: false
-};
-
-// DOM Elements
-const DOM = {
-  navbar: document.getElementById('navbar'),
-  navLinks: document.querySelectorAll('.nav-link'),
-  sections: document.querySelectorAll('.app-section'),
-  playerContainer: document.getElementById('player-container'),
-  mediaFrame: document.getElementById('media-frame'),
-  mediaTitle: document.getElementById('media-title'),
-  playPauseBtn: document.getElementById('btn-play-pause'),
-  closePlayerBtn: document.getElementById('btn-close-player')
-};
-
-/**
- * Initialize Application
- */
-function initApp() {
-  setupNavigation();
-  setupPlayerControls();
-  renderSection(appState.activeTab);
+// Abrir / Cerrar Menú Lateral
+function toggleMenu() {
+  const drawer = document.getElementById("drawer");
+  const overlay = document.getElementById("overlay");
+  
+  if (drawer && overlay) {
+    drawer.classList.toggle("active");
+    overlay.classList.toggle("active");
+  }
 }
 
-/**
- * Navigation System
- */
-function setupNavigation() {
-  DOM.navLinks.forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      const targetTab = link.getAttribute('data-tab');
-      if (targetTab && targetTab !== appState.activeTab) {
-        switchTab(targetTab);
-      }
-    });
-  });
-}
-
-function switchTab(tabName) {
-  appState.activeTab = tabName;
-
-  // Update Navigation UI
-  DOM.navLinks.forEach(link => {
-    const isActive = link.getAttribute('data-tab') === tabName;
-    link.classList.toggle('active', isActive);
+// Navegar entre secciones principales
+function navigate(sectionId, titleText) {
+  // Ocultar todas las secciones
+  document.querySelectorAll(".section-view").forEach(section => {
+    section.classList.remove("active");
   });
 
-  // Switch Sections
-  DOM.sections.forEach(section => {
-    const isTarget = section.id === `section-${tabName}`;
-    section.classList.toggle('d-none', !isTarget);
+  // Desmarcar todos los enlaces del menú
+  document.querySelectorAll(".drawer-menu a").forEach(link => {
+    link.classList.remove("active");
   });
+
+  // Mostrar la sección seleccionada
+  const targetSection = document.getElementById(`view-${sectionId}`);
+  if (targetSection) {
+    targetSection.classList.add("active");
+  }
+
+  // Actualizar el título en el Header
+  const headerTitle = document.getElementById("currentSectionTitle");
+  if (headerTitle) {
+    headerTitle.innerText = titleText;
+  }
+
+  // Activar el enlace correspondiente
+  const activeLink = document.getElementById(`link-${sectionId}`);
+  if (activeLink) {
+    activeLink.classList.add("active");
+  }
+
+  // Cerrar el menú lateral
+  toggleMenu();
 }
 
-/**
- * Persistent Player Controller
- * Directs playback without altering fixed container dimensions.
- */
-function setupPlayerControls() {
-  if (DOM.playPauseBtn) {
-    DOM.playPauseBtn.addEventListener('click', togglePlayback);
-  }
+// Control de Pestañas Internas para BBM (Gym)
+function switchBBMTab(tabName) {
+  // Desmarcar pestañas de BBM
+  document.querySelectorAll(".bbm-tab-btn").forEach(btn => {
+    btn.classList.remove("active");
+  });
 
-  if (DOM.closePlayerBtn) {
-    DOM.closePlayerBtn.addEventListener('click', closePlayer);
+  // Ocultar subvistas de BBM
+  document.querySelectorAll(".bbm-subview").forEach(subview => {
+    subview.classList.remove("active");
+  });
+
+  // Activar botón y subvista seleccionada
+  if (event && event.target) {
+    event.target.classList.add("active");
+  }
+  
+  const targetSubview = document.getElementById(`bbm-${tabName}`);
+  if (targetSubview) {
+    targetSubview.classList.add("active");
   }
 }
 
-function loadMediaItem(item) {
-  if (!item) return;
-
-  appState.currentMedia = item;
-
-  // Set media content without collapsing or expanding fixed container dimensions
-  if (DOM.mediaTitle) {
-    DOM.mediaTitle.textContent = item.title || 'Reproduciendo...';
+// Función auxiliar global para formatear fechas a lectura local
+function formatearFecha(fechaStr) {
+  if (!fechaStr) return "-";
+  const partes = fechaStr.split("-");
+  if (partes.length === 3) {
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
   }
-
-  if (DOM.mediaFrame) {
-    DOM.mediaFrame.src = item.sourceUrl || '';
-  }
-
-  // Ensure player visibility on fixed viewport layout
-  if (DOM.playerContainer) {
-    DOM.playerContainer.classList.remove('hidden');
-    DOM.playerContainer.classList.add('visible');
-  }
-
-  appState.isPlaying = true;
-  updatePlayerUI();
+  return fechaStr;
 }
-
-function togglePlayback() {
-  appState.isPlaying = !appState.isPlaying;
-  updatePlayerUI();
-}
-
-function updatePlayerUI() {
-  if (!DOM.playPauseBtn) return;
-  DOM.playPauseBtn.textContent = appState.isPlaying ? 'Pausar' : 'Reproducir';
-}
-
-function closePlayer() {
-  if (DOM.mediaFrame) {
-    DOM.mediaFrame.src = '';
-  }
-  if (DOM.playerContainer) {
-    DOM.playerContainer.classList.remove('visible');
-    DOM.playerContainer.classList.add('hidden');
-  }
-  appState.isPlaying = false;
-  appState.currentMedia = null;
-}
-
-// Global exposure for item selection handlers
-window.appController = {
-  initApp,
-  switchTab,
-  loadMediaItem
-};
-
-// Start application when DOM is ready
-document.addEventListener('DOMContentLoaded', initApp);
