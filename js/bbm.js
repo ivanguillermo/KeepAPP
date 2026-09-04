@@ -16,7 +16,7 @@
 
       // Carga en paralelo de las 3 pestañas de la hoja de cálculo
       Promise.all([
-        fetchCSV(`${URL_BASE}bbm_ejercicios&_nocache=${timeStamp}`),
+        fetchCSV(`${URL_BASE}bbm_rutinas&_nocache=${timeStamp}`),
         fetchCSV(`${URL_BASE}bbm_records&_nocache=${timeStamp}`),
         fetchCSV(`${URL_BASE}bbm_medidas&_nocache=${timeStamp}`)
       ])
