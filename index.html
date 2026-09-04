@@ -3,198 +3,160 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KeepApp</title>
+  <title>Mi App - Panel de Control</title>
+  
+  <!-- CSS Principal -->
   <link rel="stylesheet" href="keepapp.css">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- PapaParse Library para lectura de CSV -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
 
-  <!-- Top Navigation Bar -->
-  <header class="top-app-bar">
-    <button class="icon-button" id="btn-menu" aria-label="Abrir menú">
-      <span class="material-icons">menu</span>
+  <!-- NAVBAR SUPERIOR -->
+  <header class="app-header">
+    <button id="btn-menu" class="icon-btn" aria-label="Abrir menú">
+      <i class="fa-solid fa-bars"></i>
     </button>
-    <h1 class="top-bar-title" id="page-title">Compras</h1>
+    <h1 id="app-title">Compras</h1>
   </header>
 
-  <!-- Navigation Drawer (Menú Lateral) -->
-  <aside class="drawer" id="drawer">
+  <!-- DRAWER / MENÚ LATERAL -->
+  <div id="drawer-overlay" class="drawer-overlay"></div>
+  <aside id="drawer" class="drawer">
     <div class="drawer-header">
-      <h2>Navegación</h2>
+      <h2>Menú</h2>
     </div>
-    <nav class="drawer-content">
-      <a href="#" class="drawer-item active" id="link-compras" onclick="navigate('compras', 'Compras')">
-        <span class="material-icons">shopping_cart</span> Compras
-      </a>
-      <a href="#" class="drawer-item" id="link-tareas" onclick="navigate('tareas', 'Tareas')">
-        <span class="material-icons">check_box</span> Tareas
-      </a>
-      <a href="#" class="drawer-item" id="link-bbm" onclick="navigate('bbm', 'BBM Training')">
-        <span class="material-icons">fitness_center</span> BBM
-      </a>
-      <a href="#" class="drawer-item" id="link-estudio" onclick="navigate('estudio', 'Estudio (Benkyou)')">
-        <span class="material-icons">school</span> Estudio
-      </a>
-      <a href="#" class="drawer-item" id="link-gastos" onclick="navigate('gastos', 'Gastos')">
-        <span class="material-icons">attach_money</span> Gastos
-      </a>
-      <a href="#" class="drawer-item" id="link-goals" onclick="navigate('goals', 'Goals')">
-        <span class="material-icons">flag</span> Goals
-      </a>
-      <a href="#" class="drawer-item" id="link-links" onclick="navigate('links', 'Links')">
-        <span class="material-icons">link</span> Links
-      </a>
+    <nav class="drawer-nav">
+      <button class="nav-item active" onclick="switchSection('sec-compras', 'Compras')">
+        <i class="fa-solid fa-cart-shopping"></i> Compras
+      </button>
+      <button class="nav-item" onclick="switchSection('sec-tareas', 'Tareas')">
+        <i class="fa-solid fa-list-check"></i> Tareas
+      </button>
+      <button class="nav-item" onclick="switchSection('sec-bbm', 'BBM Training')">
+        <i class="fa-solid fa-dumbbell"></i> BBM
+      </button>
+      <button class="nav-item" onclick="switchSection('sec-estudio', 'Estudio')">
+        <i class="fa-solid fa-book"></i> Estudio
+      </button>
+      <button class="nav-item" onclick="switchSection('sec-metas', 'Metas')">
+        <i class="fa-solid fa-bullseye"></i> Metas
+      </button>
     </nav>
   </aside>
 
-  <!-- Overlay para menú en móviles -->
-  <div class="drawer-overlay" id="drawer-overlay"></div>
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="main-container">
 
-  <!-- Main Content Area -->
-  <main class="content-area">
-
-    <!-- MÓDULO 1: COMPRAS -->
+    <!-- 1. COMPRAS -->
     <section id="sec-compras" class="section-content active">
       <div class="card">
-        <h3>Lista de Compras e Inventario</h3>
-        <div id="comprasContainer">Cargando compras...</div>
+        <input type="text" id="compras-search" class="search-input" placeholder="Buscar artículo...">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-val" id="compras-stat-total">0</span>
+            <span class="stat-lbl">Total</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-val" id="compras-stat-agotar">0</span>
+            <span class="stat-lbl">Por Agotar</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-val" id="compras-stat-agotados">0</span>
+            <span class="stat-lbl">Agotados</span>
+          </div>
+        </div>
+        <div id="compras-list" class="data-list">Cargando datos de compras...</div>
       </div>
     </section>
 
-    <!-- MÓDULO 2: TAREAS -->
+    <!-- 2. TAREAS -->
     <section id="sec-tareas" class="section-content">
       <div class="card">
-        <h3>Gestión de Tareas y Prioridades</h3>
-        <div id="tareasContainer">Cargando tareas...</div>
+        <input type="text" id="tareas-search" class="search-input" placeholder="Buscar tarea...">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-val" id="tareas-stat-total">0</span>
+            <span class="stat-lbl">Total</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-val" id="tareas-stat-pendientes">0</span>
+            <span class="stat-lbl">Pendientes</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-val" id="tareas-stat-completadas">0</span>
+            <span class="stat-lbl">Completadas</span>
+          </div>
+        </div>
+        <div id="tareas-list" class="data-list">Cargando tareas...</div>
       </div>
     </section>
 
-    <!-- MÓDULO 3: BBM TRAINING -->
+    <!-- 3. BBM (ENTRENAMIENTO) -->
     <section id="sec-bbm" class="section-content">
-      <div class="tab-bar">
-        <button class="tab-btn active" id="tab-bbm-ejercicios" onclick="switchSubTab('bbm', 'ejercicios')">Rutina</button>
-        <button class="tab-btn" id="tab-bbm-records" onclick="switchSubTab('bbm', 'records')">Récords</button>
-        <button class="tab-btn" id="tab-bbm-medidas" onclick="switchSubTab('bbm', 'medidas')">Medidas</button>
+      <!-- Selector de Sub-Sección BBM -->
+      <div class="subnav-tabs">
+        <button class="tab-btn active" onclick="switchBBMTab('rutina')">Rutina</button>
+        <button class="tab-btn" onclick="switchBBMTab('records')">Récords</button>
+        <button class="tab-btn" onclick="switchBBMTab('medidas')">Medidas</button>
       </div>
 
-      <div id="bbm-sub-ejercicios" class="subtab-content active">
+      <!-- Tab: Rutina -->
+      <div id="bbm-tab-rutina" class="bbm-tab-content active">
         <div class="card">
-          <label for="daySelector">Día de la semana:</label>
-          <select id="daySelector" onchange="renderizarEjerciciosPorDia(this.value)">
-            <option value="Lunes">Lunes</option>
-            <option value="Martes">Martes</option>
-            <option value="Miércoles">Miércoles</option>
-            <option value="Jueves">Jueves</option>
-            <option value="Viernes">Viernes</option>
-            <option value="Sábado">Sábado</option>
-            <option value="Domingo">Domingo</option>
+          <select id="bbm-day-select" class="select-input">
+            <option value="">Selecciona un día...</option>
           </select>
-          <div id="bbmEjerciciosContainer" class="margin-top">Cargando rutina...</div>
+          <div id="bbm-rutina-list" class="data-list">Selecciona un día para ver los ejercicios.</div>
         </div>
       </div>
 
-      <div id="bbm-sub-records" class="subtab-content">
+      <!-- Tab: Récords -->
+      <div id="bbm-tab-records" class="bbm-tab-content">
         <div class="card">
-          <h3>Mis Récords Personales</h3>
-          <div id="bbmRecordsContainer">Cargando récords...</div>
+          <div id="bbm-records-list" class="data-list">Cargando récords...</div>
         </div>
       </div>
 
-      <div id="bbm-sub-medidas" class="subtab-content">
+      <!-- Tab: Medidas -->
+      <div id="bbm-tab-medidas" class="bbm-tab-content">
         <div class="card">
-          <h3>Control de Medidas Corporales</h3>
-          <div id="bbmMedidasContainer">Cargando medidas...</div>
+          <div id="bbm-medidas-list" class="data-list">Cargando medidas...</div>
         </div>
       </div>
     </section>
 
-    <!-- MÓDULO 4: ESTUDIO (BENKYOU) -->
+    <!-- 4. ESTUDIO -->
     <section id="sec-estudio" class="section-content">
-      <div class="tab-bar">
-        <button class="tab-btn active" id="tab-estudio-una" onclick="switchSubTab('estudio', 'una')">UNA</button>
-        <button class="tab-btn" id="tab-estudio-uney" onclick="switchSubTab('estudio', 'uney')">UNEY</button>
-        <button class="tab-btn" id="tab-estudio-cursos" onclick="switchSubTab('estudio', 'cursos')">Cursos</button>
-      </div>
-
-      <div id="estudio-sub-una" class="subtab-content active">
-        <div class="card">
-          <h3>Materias UNA</h3>
-          <div id="estudioUnaContainer">Cargando materias UNA...</div>
-        </div>
-      </div>
-
-      <div id="estudio-sub-uney" class="subtab-content">
-        <div class="card">
-          <h3>Materias UNEY</h3>
-          <div id="estudioUneyContainer">Cargando materias UNEY...</div>
-        </div>
-      </div>
-
-      <div id="estudio-sub-cursos" class="subtab-content">
-        <div class="card">
-          <h3>Cursos Autónomos / Certificaciones</h3>
-          <div id="estudioCursosContainer">Cargando cursos...</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MÓDULO 5: GASTOS -->
-    <section id="sec-gastos" class="section-content">
       <div class="card">
-        <h3>Control de Gastos y Flujo</h3>
-        <div id="gastosContainer">Cargando gastos...</div>
+        <input type="text" id="estudio-search" class="search-input" placeholder="Buscar materia o tema...">
+        <div id="estudio-list" class="data-list">Cargando plan de estudio...</div>
       </div>
     </section>
 
-    <!-- MÓDULO 6: GOALS -->
-    <section id="sec-goals" class="section-content">
-      <div class="tab-bar">
-        <button class="tab-btn active" id="tab-goals-300" onclick="switchSubTab('goals', '300')">300</button>
-        <button class="tab-btn" id="tab-goals-monthly" onclick="switchSubTab('goals', 'monthly')">Monthly</button>
-        <button class="tab-btn" id="tab-goals-weekly" onclick="switchSubTab('goals', 'weekly')">Weekly</button>
-      </div>
-
-      <div id="goals-sub-300" class="subtab-content active">
-        <div class="card">
-          <h3>Metas 300</h3>
-          <div id="goals300Container">Cargando lista 300...</div>
-        </div>
-      </div>
-
-      <div id="goals-sub-monthly" class="subtab-content">
-        <div class="card">
-          <h3>Objetivos Mensuales</h3>
-          <div id="goalsMonthlyContainer">Cargando objetivos mensuales...</div>
-        </div>
-      </div>
-
-      <div id="goals-sub-weekly" class="subtab-content">
-        <div class="card">
-          <h3>Plan Semanal</h3>
-          <div id="goalsWeeklyContainer">Cargando plan semanal...</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MÓDULO 7: LINKS -->
-    <section id="sec-links" class="section-content">
+    <!-- 5. METAS -->
+    <section id="sec-metas" class="section-content">
       <div class="card">
-        <h3>Enlaces y Marcadores</h3>
-        <div id="linksContainer">Cargando enlaces...</div>
+        <div id="goals-tabs-container" class="subnav-tabs">
+          <!-- Las pestañas de años/categorías se generarán dinámicamente -->
+        </div>
+        <div id="goals-list" class="data-list">Cargando metas...</div>
       </div>
     </section>
 
   </main>
 
-  <!-- Carga de Scripts JS -->
-  <script src="js/app.js"></script>
+  <!-- SCRIPTS JS -->
   <script src="js/compras.js"></script>
   <script src="js/tareas.js"></script>
   <script src="js/bbm.js"></script>
   <script src="js/estudio.js"></script>
-  <script src="js/gastos.js"></script>
   <script src="js/goals.js"></script>
-  <script src="js/links.js"></script>
+  <script src="app.js"></script>
+
 </body>
 </html>
