@@ -1,176 +1,151 @@
-/**
- * Módulo Independiente: Goals / Metas
- * Archivo: js/goals.js
- */
-(function () {
-  const SHEET_ID = "1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw";
-  const URL_GOALS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=goals`;
+/* ==========================================
+   MÓDULO: GOALS / METAS - KEEPAPP
+   Carga con PapaParse desde Google Sheets (CSV)
+   ========================================== */
 
-  let datosGoals = [];
-  let pestanaActual = "Septiembre"; // Pestaña por defecto
+const GoalsModule = (() => {
+  const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
+  const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=goals`;
 
-  function initGoals() {
-    try {
-      const container = document.getElementById("goalsContainer");
-      if (!container) return;
+  let goalsData = [];
+  let currentCategory = 'todas';
 
-      const url = `${URL_GOALS}&_nocache=${new Date().getTime()}`;
+  /* ------------------------------------------
+     1. INICIALIZACIÓN Y EVENTOS
+     ------------------------------------------ */
+  const init = () => {
+    fetchGoals();
+  };
 
-      Papa.parse(url, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: function (results) {
-          try {
-            datosGoals = results.data || [];
-            renderizarGoals(pestanaActual);
-          } catch (err) {
-            console.error("Error al procesar metas:", err);
-            mostrarError("Error al procesar la lista de metas.");
-          }
-        },
-        error: function (err) {
-          console.error("Error al descargar CSV de metas:", err);
-          mostrarError("No se pudo conectar con la hoja de Goals.");
-        }
-      });
-    } catch (error) {
-      console.error("Error crítico en initGoals:", error);
-      mostrarError("Ocurrió un error inesperado en el módulo de metas.");
-    }
-  }
-
-  // Cambiar entre pestañas (300, Julio, Agosto, Septiembre..., Week)
-  function switchGoalsTab(tabName) {
-    pestanaActual = tabName;
-
-    // Marcar botón activo
-    document.querySelectorAll(".goals-tab-btn").forEach((btn) => {
-      btn.classList.remove("active");
-      if (btn.getAttribute("data-tab").toLowerCase() === tabName.toLowerCase()) {
-        btn.classList.add("active");
-      }
-    });
-
-    renderizarGoals(pestanaActual);
-  }
-
-  // Renderizar los elementos de la columna seleccionada
-  function renderizarGoals(columnName) {
-    const container = document.getElementById("goalsContainer");
-    if (!container) return;
-
-    // Extraer únicamente los valores no vacíos de la columna activa
-    const metasColumn = datosGoals
-      .map((row) => {
-        // Busca la llave sin importar mayúsculas/minúsculas
-        const key = Object.keys(row).find(
-          (k) => k.trim().toLowerCase() === columnName.toLowerCase()
-        );
-        return key ? (row[key] || "").trim() : "";
-      })
-      .filter((texto) => texto.length > 0);
-
-    if (!metasColumn || metasColumn.length === 0) {
-      container.innerHTML = `<p style='color: var(--text-dim); text-align: center; padding: 20px;'>No hay metas registradas para ${columnName}.</p>`;
+  const fetchGoals = () => {
+    if (typeof Papa === 'undefined') {
+      console.error('PapaParse no está disponible.');
       return;
     }
 
-    let html = "";
-
-    metasColumn.forEach((metaText, index) => {
-      const itemId = `goal-${columnName.toLowerCase()}-${index}`;
-
-      html += `
-        <div class="swipe-item-wrapper">
-          <div class="swipe-content card goal-card" id="card-${itemId}">
-            <div class="goal-info">
-              <span class="goal-text">${metaText}</span>
-            </div>
-            <span class="badge status-por-agotar">Pendiente</span>
-          </div>
-          <button class="swipe-action-btn" onclick="toggleGoalStatus('${itemId}')">
-            ✓ Listo
-          </button>
-        </div>
-      `;
+    Papa.parse(CSV_URL, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        goalsData = processGoals(results.data);
+        renderCategories();
+        renderGoals();
+      },
+      error: (err) => {
+        console.error('Error al cargar la pestaña goals:', err);
+      }
     });
+  };
 
-    container.innerHTML = html;
-    setupSwipeEvents();
-  }
+  const processGoals = (data) => {
+    return data.map((item, index) => ({
+      id: item.id || `goal-${index}`,
+      texto: item.meta || item.goal || item.texto || item.Meta || '',
+      categoria: (item.categoria || item.Categoria || 'General').trim(),
+      completada: (item.completada || item.estado || '').toLowerCase() === 'true' || item.completada === '1'
+    })).filter(g => g.texto.trim() !== '');
+  };
 
-  // Alternar estado completado / pendiente localmente en UI
-  function toggleGoalStatus(itemId) {
-    const card = document.getElementById(`card-${itemId}`);
-    if (!card) return;
+  /* ------------------------------------------
+     2. RENDERIZADO DE CATEGORÍAS Y METAS
+     ------------------------------------------ */
+  const renderCategories = () => {
+    const container = document.getElementById('goals-tabs-container');
+    if (!container) return;
 
-    const isCompleted = card.classList.contains("completed");
-    const badge = card.querySelector(".badge");
+    // Obtener categorías únicas
+    const categories = ['todas', ...new Set(goalsData.map(g => g.categoria))];
 
-    if (isCompleted) {
-      card.classList.remove("completed");
-      if (badge) {
-        badge.className = "badge status-por-agotar";
-        badge.innerText = "Pendiente";
-      }
-    } else {
-      card.classList.add("completed");
-      if (badge) {
-        badge.className = "badge status-suficiente";
-        badge.innerText = "¡Logrado! 🎉";
-      }
+    container.innerHTML = categories.map(cat => `
+      <button class="goals-tab-btn ${cat === currentCategory ? 'active' : ''}" data-cat="${escapeHTML(cat)}">
+        ${capitalize(cat)}
+      </button>
+    `).join('');
+
+    container.querySelectorAll('.goals-tab-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        currentCategory = e.currentTarget.dataset.cat;
+        renderCategories();
+        renderGoals();
+      });
+    });
+  };
+
+  const renderGoals = () => {
+    const container = document.getElementById('goals-list');
+    if (!container) return;
+
+    const filtered = currentCategory === 'todas' 
+      ? goalsData 
+      : goalsData.filter(g => g.categoria === currentCategory);
+
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div class="card" style="text-align: center; color: var(--text-dim);">
+          <p style="margin: 0;">No hay metas en esta categoría.</p>
+        </div>`;
+      return;
     }
 
-    // Regresar la tarjeta a su posición original
-    const wrapper = card.parentElement;
-    if (wrapper) wrapper.classList.remove("swiped");
-  }
+    container.innerHTML = filtered.map(g => `
+      <div class="swipe-item-wrapper" data-id="${g.id}">
+        <div class="swipe-content goal-card ${g.completada ? 'completed' : ''}">
+          <div class="goal-info">
+            <span class="badge" style="background: var(--pastel-goals-bg); color: var(--pastel-goals-accent); border: 1px solid var(--pastel-goals-border); align-self: flex-start;">
+              ${escapeHTML(g.categoria)}
+            </span>
+            <span class="goal-text">${escapeHTML(g.texto)}</span>
+          </div>
+        </div>
+        <button class="swipe-action-btn" onclick="GoalsModule.toggleGoal('${g.id}')">
+          ${g.completada ? 'Desmarcar' : 'Listo'}
+        </button>
+      </div>
+    `).join('');
 
-  // Interacción táctil de Swipe Left
-  function setupSwipeEvents() {
-    const wrappers = document.querySelectorAll(".swipe-item-wrapper");
+    setupSwipeGestures();
+  };
 
-    wrappers.forEach((wrapper) => {
-      const content = wrapper.querySelector(".swipe-content");
+  /* ------------------------------------------
+     3. GESTOS SWIPE Y ACCIONES
+     ------------------------------------------ */
+  const setupSwipeGestures = () => {
+    const wrappers = document.querySelectorAll('.swipe-item-wrapper');
+
+    wrappers.forEach(wrapper => {
       let startX = 0;
       let currentX = 0;
 
-      content.addEventListener("touchstart", (e) => {
+      wrapper.addEventListener('touchstart', (e) => {
         startX = e.touches[0].clientX;
       }, { passive: true });
 
-      content.addEventListener("touchmove", (e) => {
+      wrapper.addEventListener('touchmove', (e) => {
         currentX = e.touches[0].clientX;
         const diff = startX - currentX;
-        if (diff > 10 && diff < 100) {
-          content.style.transform = `translateX(-${diff}px)`;
+
+        if (diff > 30) {
+          wrapper.classList.add('swiped');
+        } else if (diff < -30) {
+          wrapper.classList.remove('swiped');
         }
       }, { passive: true });
-
-      content.addEventListener("touchend", () => {
-        const diff = startX - currentX;
-        content.style.transform = "";
-
-        if (diff > 50) {
-          wrapper.classList.toggle("swiped");
-        } else if (diff < -30) {
-          wrapper.classList.remove("swiped");
-        }
-      });
     });
-  }
+  };
 
-  function mostrarError(mensaje) {
-    const container = document.getElementById("goalsContainer");
-    if (container) {
-      container.innerHTML = `<div class="error-msg">⚠️ ${mensaje}</div>`;
+  const toggleGoal = (id) => {
+    const goal = goalsData.find(g => g.id === id);
+    if (goal) {
+      goal.completada = !goal.completada;
+      renderGoals();
     }
-  }
+  };
 
-  // Exponer al ámbito global
-  window.switchGoalsTab = switchGoalsTab;
-  window.toggleGoalStatus = toggleGoalStatus;
+  const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+  const escapeHTML = (str) => str ? String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)) : '';
 
-  document.addEventListener("DOMContentLoaded", initGoals);
+  return { init, fetchGoals, toggleGoal };
 })();
+
+window.GoalsModule = GoalsModule;
