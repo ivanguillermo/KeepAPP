@@ -28,7 +28,10 @@ function renderDoxLayout(container) {
           <option value="Cedula">Cédula de Identidad</option>
           <option value="Pasaporte">Pasaporte</option>
           <option value="Titulo">Título / Certificado</option>
-          <option value="Carnet">Carnet / Licencia</option>
+          <option value="Universidad">UNA / UPEL</option>
+          <option value="Planillas">Planillas </option>
+          <option value="Poder">Poder / Licencia</option>
+          <option value="Bancario">Bancario </option>
           <option value="Otros">Otro Documento</option>
         </select>
       </div>
