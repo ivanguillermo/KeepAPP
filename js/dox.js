@@ -2,7 +2,7 @@
  * js/dox.js - Módulo de Bóveda de Documentos e Identificaciones
  */
 KeepModule('dox', () => {
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznDyGCaRoePoaDBJg-OFBC_Bt0f3DPQy8_TWFH9lJSaq02YYJeLUW9uh-NqbRQFiA/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyJtZLRWn2hXiQFkEiyA6ioU0iOmUUs8Ab3afduHH6pwQEjGSpru6Aol-L6MGQTLPpn/exec';
 
   const container = document.getElementById('sec-dox');
   if (!container) return;
