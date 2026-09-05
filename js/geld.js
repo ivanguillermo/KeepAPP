@@ -1,12 +1,11 @@
 /**
- * js/geld.js - Módulo Geld: Compras, Libro Diario y Registro de Gastos
+ * js/geld.js - Módulo Geld: Compras, Resumen de Gastos y Registro Directo a Sheets
  */
 KeepModule('geld', () => {
   const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz8_JoQVUQ-kpDsi_seJhD0YuQ4A04VLqc18UPrUKxIUHfSTv4Oh_Dun1mJxDplRuJE/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby09O4ij5fm4r89btL2j8g6VYNqFgFzSEb0ugBrouOh1HeQ_PIFfnJmG54upApSNxv_/exec';
 
   const URL_COMPRAS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=compras`;
-  const URL_LIBRO = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=libro_diario`;
   const URL_GASTOS_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=gastos`;
 
   function fetchCSV(url) {
@@ -90,113 +89,101 @@ KeepModule('geld', () => {
     renderView();
   }
 
+  // Helper para obtener datos remotos de gastos desde Sheets
+  async function cargarGastosRemotos() {
+    try {
+      const data = await fetchCSV(URL_GASTOS_CSV);
+      return data.map((r, i) => ({
+        id: r.ID || r.id || `remoto_${i}`,
+        fecha: r.Fecha || r.fecha || '',
+        descripcion: r.Descripción || r.descripcion || '',
+        categoria: r.Categoría || r.categoria || 'Otro',
+        monto: parseFloat(r.Monto || r.monto || 0),
+        lugar: r.Lugar || r.lugar || 'N/A',
+        metodo: r.Método || r.metodo || 'Otro'
+      }));
+    } catch (e) {
+      console.warn("Error al cargar gastos desde Google Sheets:", e);
+      return [];
+    }
+  }
+
   // -------------------------------------------------------------
-  // 2. SUBSECCIÓN LIBRO DIARIO
+  // 2. SUBSECCIÓN RESUMEN DE GASTOS
   // -------------------------------------------------------------
-  function setupLibroDiario(data, container) {
+  async function setupResumen(container) {
     if (!container) return;
 
-    let saldoBanco = '0';
-    let deudaCashea = '0';
+    container.innerHTML = `<p class="text-xs text-gray-400 p-4 text-center">Calculando resumen de gastos...</p>`;
+    const gastos = await cargarGastosRemotos();
 
-    data.forEach(row => {
-      const desc = String(row['Descripción'] || Object.values(row)[1] || '');
-      const monto = String(row['Cuenta'] || Object.values(row)[2] || '0');
-      if (desc.includes('Saldo Banco')) saldoBanco = monto;
-      if (desc.includes('Deuda Cashea')) deudaCashea = monto;
+    if (gastos.length === 0) {
+      container.innerHTML = `<p class="text-xs text-gray-400 p-4 text-center">No hay gastos registrados en la hoja para generar el resumen.</p>`;
+      return;
+    }
+
+    const totalGastado = gastos.reduce((sum, g) => sum + g.monto, 0);
+
+    // Agrupar por categoría
+    const porCategoria = {};
+    gastos.forEach(g => {
+      porCategoria[g.categoria] = (porCategoria[g.categoria] || 0) + g.monto;
     });
 
-    const asientos = data
-      .map(d => ({
-        fecha: d['Fecha'] || '',
-        descripcion: d['Descripción'] || '',
-        cuenta: d['Cuenta'] || '',
-        debe: d['Debe'] || '',
-        haber: d['Haber'] || ''
-      }))
-      .filter(a => a.fecha.trim() !== '' && a.fecha !== 'Fecha');
+    const categoriasOrdenadas = Object.keys(porCategoria).sort((a, b) => porCategoria[b] - porCategoria[a]);
 
     let html = `
       <div class="space-y-4">
-        <div class="grid grid-cols-2 gap-2">
-          <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-2xl">
-            <p class="text-[10px] font-bold text-emerald-600 uppercase">Saldo Banco</p>
-            <p class="text-sm font-black text-emerald-900">${saldoBanco}</p>
+        <!-- Card Total -->
+        <div class="bg-rose-50 border border-rose-200 p-4 rounded-2xl flex justify-between items-center shadow-xs">
+          <div>
+            <p class="text-[10px] font-bold text-rose-600 uppercase tracking-wider">Total Gastado</p>
+            <p class="text-xl font-black text-rose-950">$${totalGastado.toFixed(2)}</p>
           </div>
-          <div class="bg-amber-50 border border-amber-200 p-3 rounded-2xl">
-            <p class="text-[10px] font-bold text-amber-600 uppercase">Deuda Cashea</p>
-            <p class="text-sm font-black text-amber-900">${deudaCashea}</p>
-          </div>
+          <span class="text-xs bg-rose-200 text-rose-800 font-bold px-2.5 py-1 rounded-xl">
+            ${gastos.length} Transacciones
+          </span>
         </div>
 
-        <div class="bg-white rounded-2xl p-3 shadow-xs border border-emerald-100 max-h-[60vh] overflow-y-auto space-y-2">
+        <!-- Desglose por Categoría -->
+        <div class="bg-white rounded-2xl p-4 shadow-xs border border-rose-100 space-y-3">
+          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Gastos por Categoría</p>
+          <div class="space-y-2.5">
     `;
 
-    if (asientos.length === 0) {
-      html += `<p class="text-xs text-gray-400 py-4 text-center">No hay asientos contables registrados.</p>`;
-    } else {
-      asientos.forEach(a => {
-        html += `
-          <div class="p-2.5 rounded-xl bg-gray-50 border border-gray-100 flex justify-between items-start text-xs gap-2">
-            <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-2">
-                <span class="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">${a.fecha}</span>
-                <span class="font-bold text-gray-800 truncate">${a.descripcion}</span>
-              </div>
-              <p class="text-[10px] text-gray-500 mt-1">${a.cuenta}</p>
-            </div>
-            <div class="text-right shrink-0">
-              ${a.debe ? `<p class="text-emerald-700 font-bold">D: ${a.debe}</p>` : ''}
-              ${a.haber ? `<p class="text-rose-600 font-bold">H: ${a.haber}</p>` : ''}
+    categoriasOrdenadas.forEach(cat => {
+      const montoCat = porCategoria[cat];
+      const porcentaje = totalGastado > 0 ? ((montoCat / totalGastado) * 100).toFixed(1) : 0;
+
+      html += `
+        <div class="space-y-1">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold text-gray-700">${cat}</span>
+            <div class="text-right">
+              <span class="font-black text-gray-900">$${montoCat.toFixed(2)}</span>
+              <span class="text-[10px] text-gray-400 ml-1">(${porcentaje}%)</span>
             </div>
           </div>
-        `;
-      });
-    }
+          <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+            <div class="bg-rose-500 h-full rounded-full" style="width: ${porcentaje}%"></div>
+          </div>
+        </div>
+      `;
+    });
 
-    html += `</div></div>`;
+    html += `</div></div></div>`;
     container.innerHTML = html;
   }
 
   // -------------------------------------------------------------
-  // 3. SUBSECCIÓN GASTOS (REGISTRO INDEPENDIENTE)
+  // 3. SUBSECCIÓN GASTOS (REGISTRO DIRECTO A GOOGLE SHEETS)
   // -------------------------------------------------------------
   function setupGastos(container) {
     if (!container) return;
 
     async function renderView() {
-      let gastosRemotos = [];
-      let gastosLocales = JSON.parse(localStorage.getItem('geld_gastos_personales') || '[]');
-
-      try {
-        gastosRemotos = await fetchCSV(URL_GASTOS_CSV);
-      } catch (e) {
-        console.warn("No se pudo leer la pestaña gastos desde Google Sheets, usando local:", e);
-      }
-
-      // Mapear gastos remotos
-      const remotosNormalizados = gastosRemotos.map((r, i) => ({
-        id: r.ID || r.id || `remoto_${i}`,
-        fecha: r.Fecha || r.fecha || '',
-        descripcion: r.Descripción || r.descripcion || '',
-        categoria: r.Categoría || r.categoria || 'Otro',
-        monto: r.Monto || r.monto || '0.00',
-        lugar: r.Lugar || r.lugar || 'N/A',
-        metodo: r.Método || r.metodo || 'Otro'
-      }));
-
-      // Unir datos sin duplicados exactos
-      const gastosGuardados = [...remotosNormalizados];
-      gastosLocales.forEach(local => {
-        const existe = remotosNormalizados.some(remoto => 
-          remoto.descripcion === local.descripcion &&
-          remoto.monto === local.monto &&
-          remoto.fecha === local.fecha
-        );
-        if (!existe) {
-          gastosGuardados.push(local);
-        }
-      });
+      container.innerHTML = `<p class="text-xs text-gray-400 p-4 text-center">Cargando gastos desde la hoja...</p>`;
+      const gastosGuardados = await cargarGastosRemotos();
 
       let html = `
         <div class="space-y-4">
@@ -225,7 +212,7 @@ KeepModule('geld', () => {
                 </select>
               </div>
               <div>
-                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Monto</label>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Monto ($)</label>
                 <input type="number" step="0.01" id="gasto-monto" required placeholder="0.00" class="w-full bg-gray-50 text-xs p-2 rounded-xl border border-gray-200 outline-none">
               </div>
             </div>
@@ -271,15 +258,10 @@ KeepModule('geld', () => {
                   <span class="font-bold text-gray-800 truncate">${g.descripcion}</span>
                   <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">${g.categoria}</span>
                 </div>
-                <p class="text-[10px] text-gray-400 mt-0.5">${g.lugar} • <span class="text-emerald-700 font-semibold">${g.metodo}</span></p>
+                <p class="text-[10px] text-gray-400 mt-0.5">${g.lugar} • <span class="text-emerald-700 font-semibold">${g.metodo}</span> • <span class="text-gray-400">${g.fecha}</span></p>
               </div>
               <div class="flex items-center gap-2 shrink-0">
-                <span class="font-black text-gray-900">$${g.monto}</span>
-                <button data-id="${g.id}" class="btn-borrar-gasto p-1 text-gray-300 hover:text-rose-500 transition-colors" title="Borrar de la app">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                  </svg>
-                </button>
+                <span class="font-black text-gray-900">$${g.monto.toFixed(2)}</span>
               </div>
             </div>
           `;
@@ -309,17 +291,6 @@ KeepModule('geld', () => {
         });
       }
 
-      // Eventos para eliminar gastos localmente
-      container.querySelectorAll('.btn-borrar-gasto').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const id = e.currentTarget.getAttribute('data-id');
-          let prevLocales = JSON.parse(localStorage.getItem('geld_gastos_personales') || '[]');
-          prevLocales = prevLocales.filter(l => l.id !== id);
-          localStorage.setItem('geld_gastos_personales', JSON.stringify(prevLocales));
-          renderView();
-        });
-      });
-
       if (form) {
         form.addEventListener('submit', async (e) => {
           e.preventDefault();
@@ -338,12 +309,7 @@ KeepModule('geld', () => {
           };
 
           try {
-            // Guardar en el almacenamiento local de la app
-            const prevLocales = JSON.parse(localStorage.getItem('geld_gastos_personales') || '[]');
-            prevLocales.push(nuevoGasto);
-            localStorage.setItem('geld_gastos_personales', JSON.stringify(prevLocales));
-
-            // Enviar a Apps Script
+            // Guardar directamente en Apps Script sin usar localStorage
             await fetch(APPS_SCRIPT_URL, {
               method: 'POST',
               mode: 'no-cors',
@@ -351,7 +317,10 @@ KeepModule('geld', () => {
               body: JSON.stringify({ action: 'guardarGasto', payload: nuevoGasto })
             });
 
+            // Refrescar vistas de gastos y el resumen
             await renderView();
+            const cResumen = document.getElementById('geld-resumen');
+            if (cResumen) setupResumen(cResumen);
           } catch (err) {
             statusMsg.className = "text-[11px] text-center text-red-500 block";
             statusMsg.textContent = "Error al guardar: " + err.message;
@@ -369,10 +338,11 @@ KeepModule('geld', () => {
   // -------------------------------------------------------------
   async function initGeld() {
     const cCompras = document.getElementById('geld-compras');
-    const cLibro = document.getElementById('geld-libro');
+    const cResumen = document.getElementById('geld-resumen');
     const cGastos = document.getElementById('geld-gastos');
 
     if (cGastos) setupGastos(cGastos);
+    if (cResumen) setupResumen(cResumen);
 
     try {
       if (cCompras) {
@@ -381,15 +351,6 @@ KeepModule('geld', () => {
       }
     } catch (e) {
       console.error('Error al cargar compras:', e);
-    }
-
-    try {
-      if (cLibro) {
-        const dataLibro = await fetchCSV(URL_LIBRO);
-        setupLibroDiario(dataLibro, cLibro);
-      }
-    } catch (e) {
-      console.error('Error al cargar libro diario:', e);
     }
   }
 
