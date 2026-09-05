@@ -3,7 +3,7 @@
  */
 KeepModule('geld', () => {
   const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxJCaE7OMlQFdLAh7SUxNUM59mFKFkJ3c2R5EjV2JFW1rqVFSGGKXaH7jcTWFJiIc1/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz8_JoQVUQ-kpDsi_seJhD0YuQ4A04VLqc18UPrUKxIUHfSTv4Oh_Dun1mJxDplRuJE/exec';
 
   const URL_COMPRAS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=compras`;
   const URL_LIBRO = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=libro_diario`;
