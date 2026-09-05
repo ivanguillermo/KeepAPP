@@ -1,5 +1,5 @@
 /**
- * js/geld.js - Módulo Geld: Compras, Resumen de Gastos y Registro Directo a Sheets
+ * js/geld.js - Módulo Geld: Compras, Resumen de Gastos y Registro Directo a Sheets + LocalStorage
  */
 KeepModule('geld', () => {
   const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
@@ -8,27 +8,42 @@ KeepModule('geld', () => {
   const URL_COMPRAS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=compras`;
   const URL_GASTOS_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=gastos`;
 
-async function fetchCSV(url) {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status}`);
+  // LocalStorage Helpers
+  function getGastosLocales() {
+    try {
+      return JSON.parse(localStorage.getItem('geld_gastos_locales')) || [];
+    } catch (e) {
+      return [];
     }
-    const csvText = await response.text();
-    
-    return new Promise((resolve, reject) => {
-      Papa.parse(csvText, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => resolve(results.data),
-        error: (err) => reject(err)
-      });
-    });
-  } catch (err) {
-    console.warn('Error al obtener CSV de Sheets:', err);
-    return []; // Retorna un array vacío para que la app no se rompa
   }
-}
+
+  function saveGastoLocal(gasto) {
+    const actuales = getGastosLocales();
+    actuales.push(gasto);
+    localStorage.setItem('geld_gastos_locales', JSON.stringify(actuales));
+  }
+
+  async function fetchCSV(url) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
+      const csvText = await response.text();
+
+      return new Promise((resolve, reject) => {
+        Papa.parse(csvText, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => resolve(results.data),
+          error: (err) => reject(err)
+        });
+      });
+    } catch (err) {
+      console.warn('Error al obtener CSV de Sheets:', err);
+      return [];
+    }
+  }
 
   // -------------------------------------------------------------
   // 1. SUBSECCIÓN COMPRAS
@@ -99,11 +114,12 @@ async function fetchCSV(url) {
     renderView();
   }
 
-  // Helper para obtener datos remotos de gastos desde Sheets
-  async function cargarGastosRemotos() {
+  // Combinar gastos guardados en Google Sheets con los guardados en LocalStorage
+  async function cargarTodosLosGastos() {
+    let gastosRemotos = [];
     try {
       const data = await fetchCSV(URL_GASTOS_CSV);
-      return data.map((r, i) => ({
+      gastosRemotos = data.map((r, i) => ({
         id: r.ID || r.id || `remoto_${i}`,
         fecha: r.Fecha || r.fecha || '',
         descripcion: r.Descripción || r.descripcion || '',
@@ -114,8 +130,10 @@ async function fetchCSV(url) {
       }));
     } catch (e) {
       console.warn("Error al cargar gastos desde Google Sheets:", e);
-      return [];
     }
+
+    const gastosLocales = getGastosLocales();
+    return [...gastosRemotos, ...gastosLocales];
   }
 
   // -------------------------------------------------------------
@@ -125,26 +143,26 @@ async function fetchCSV(url) {
     if (!container) return;
 
     container.innerHTML = `<p class="text-xs text-gray-400 p-4 text-center">Calculando resumen de gastos...</p>`;
-    const gastos = await cargarGastosRemotos();
+    const gastos = await cargarTodosLosGastos();
 
     if (gastos.length === 0) {
-      container.innerHTML = `<p class="text-xs text-gray-400 p-4 text-center">No hay gastos registrados en la hoja para generar el resumen.</p>`;
+      container.innerHTML = `<p class="text-xs text-gray-400 p-4 text-center">No hay gastos registrados para generar el resumen.</p>`;
       return;
     }
 
-    const totalGastado = gastos.reduce((sum, g) => sum + g.monto, 0);
+    const totalGastado = gastos.reduce((sum, g) => sum + (isNaN(g.monto) ? 0 : g.monto), 0);
 
-    // Agrupar por categoría
     const porCategoria = {};
     gastos.forEach(g => {
-      porCategoria[g.categoria] = (porCategoria[g.categoria] || 0) + g.monto;
+      const cat = g.categoria || 'Otros';
+      const m = isNaN(g.monto) ? 0 : g.monto;
+      porCategoria[cat] = (porCategoria[cat] || 0) + m;
     });
 
     const categoriasOrdenadas = Object.keys(porCategoria).sort((a, b) => porCategoria[b] - porCategoria[a]);
 
     let html = `
       <div class="space-y-4">
-        <!-- Card Total -->
         <div class="bg-rose-50 border border-rose-200 p-4 rounded-2xl flex justify-between items-center shadow-xs">
           <div>
             <p class="text-[10px] font-bold text-rose-600 uppercase tracking-wider">Total Gastado</p>
@@ -155,7 +173,6 @@ async function fetchCSV(url) {
           </span>
         </div>
 
-        <!-- Desglose por Categoría -->
         <div class="bg-white rounded-2xl p-4 shadow-xs border border-rose-100 space-y-3">
           <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Gastos por Categoría</p>
           <div class="space-y-2.5">
@@ -186,14 +203,14 @@ async function fetchCSV(url) {
   }
 
   // -------------------------------------------------------------
-  // 3. SUBSECCIÓN GASTOS (REGISTRO DIRECTO A GOOGLE SHEETS)
+  // 3. SUBSECCIÓN GASTOS (REGISTRO EN LOCALSTORAGE Y SHEETS)
   // -------------------------------------------------------------
   function setupGastos(container) {
     if (!container) return;
 
     async function renderView() {
-      container.innerHTML = `<p class="text-xs text-gray-400 p-4 text-center">Cargando gastos desde la hoja...</p>`;
-      const gastosGuardados = await cargarGastosRemotos();
+      container.innerHTML = `<p class="text-xs text-gray-400 p-4 text-center">Cargando gastos...</p>`;
+      const gastosGuardados = await cargarTodosLosGastos();
 
       let html = `
         <div class="space-y-4">
@@ -268,11 +285,9 @@ async function fetchCSV(url) {
                   <span class="font-bold text-gray-800 truncate">${g.descripcion}</span>
                   <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">${g.categoria}</span>
                 </div>
-                <p class="text-[10px] text-gray-400 mt-0.5">${g.lugar} • <span class="text-emerald-700 font-semibold">${g.metodo}</span> • <span class="text-gray-400">${g.fecha}</span></p>
+                <p class="text-[10px] text-gray-400 mt-0.5">${g.fecha} • ${g.lugar} • ${g.metodo}</p>
               </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <span class="font-black text-gray-900">$${g.monto.toFixed(2)}</span>
-              </div>
+              <p class="font-black text-rose-600 shrink-0">$${(isNaN(g.monto) ? 0 : g.monto).toFixed(2)}</p>
             </div>
           `;
         });
@@ -281,61 +296,71 @@ async function fetchCSV(url) {
       html += `</div></div>`;
       container.innerHTML = html;
 
+      // Eventos UI Formulario
       const btnNuevo = container.querySelector('#btn-nuevo-gasto');
-      const form = container.querySelector('#form-gasto');
+      const formGasto = container.querySelector('#form-gasto');
       const btnCancelar = container.querySelector('#btn-cancelar-gasto');
-      const btnGuardar = container.querySelector('#btn-guardar-gasto');
-      const statusMsg = container.querySelector('#gasto-status');
+      const gastoStatus = container.querySelector('#gasto-status');
 
-      if (btnNuevo && form) {
+      if (btnNuevo && formGasto) {
         btnNuevo.addEventListener('click', () => {
-          form.classList.remove('hidden');
+          formGasto.classList.remove('hidden');
           btnNuevo.classList.add('hidden');
         });
       }
 
-      if (btnCancelar && form) {
+      if (btnCancelar && formGasto) {
         btnCancelar.addEventListener('click', () => {
-          form.classList.add('hidden');
+          formGasto.reset();
+          formGasto.classList.add('hidden');
           btnNuevo.classList.remove('hidden');
         });
       }
 
-      if (form) {
-        form.addEventListener('submit', async (e) => {
+      // Manejo de envío del formulario
+      if (formGasto) {
+        formGasto.addEventListener('submit', async (e) => {
           e.preventDefault();
-          btnGuardar.disabled = true;
-          statusMsg.className = "text-[11px] text-center text-emerald-600 block font-semibold";
-          statusMsg.textContent = "Guardando gasto en Google Sheets...";
 
+          const fechaHoy = new Date().toISOString().split('T')[0];
           const nuevoGasto = {
-            id: 'gasto_' + Date.now(),
-            fecha: new Date().toLocaleDateString('es-ES'),
-            descripcion: container.querySelector('#gasto-desc').value,
-            categoria: container.querySelector('#gasto-categoria').value,
-            monto: container.querySelector('#gasto-monto').value,
-            lugar: container.querySelector('#gasto-lugar').value || 'N/A',
-            metodo: container.querySelector('#gasto-metodo').value
+            id: 'loc_' + Date.now(),
+            fecha: fechaHoy,
+            descripcion: document.getElementById('gasto-desc').value.trim(),
+            categoria: document.getElementById('gasto-categoria').value,
+            monto: parseFloat(document.getElementById('gasto-monto').value) || 0,
+            lugar: document.getElementById('gasto-lugar').value.trim() || 'N/A',
+            metodo: document.getElementById('gasto-metodo').value
           };
 
+          // 1. Guardar en LocalStorage de inmediato
+          saveGastoLocal(nuevoGasto);
+
+          gastoStatus.textContent = "Guardando en Google Sheets...";
+          gastoStatus.className = "text-[11px] text-center text-amber-600 font-bold block";
+
+          // 2. Enviar a Google Apps Script
           try {
-            // Guardar directamente en Apps Script sin usar localStorage
             await fetch(APPS_SCRIPT_URL, {
               method: 'POST',
               mode: 'no-cors',
-              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-              body: JSON.stringify({ action: 'guardarGasto', payload: nuevoGasto })
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                sheet: 'gastos',
+                action: 'append',
+                data: nuevoGasto
+              })
             });
-
-            // Refrescar vistas de gastos y el resumen
-            await renderView();
-            const cResumen = document.getElementById('geld-resumen');
-            if (cResumen) setupResumen(cResumen);
           } catch (err) {
-            statusMsg.className = "text-[11px] text-center text-red-500 block";
-            statusMsg.textContent = "Error al guardar: " + err.message;
-            btnGuardar.disabled = false;
+            console.warn("Error enviando gasto a Apps Script:", err);
           }
+
+          gastoStatus.textContent = "¡Gasto registrado con éxito!";
+          gastoStatus.className = "text-[11px] text-center text-emerald-600 font-bold block";
+
+          setTimeout(() => {
+            renderView();
+          }, 800);
         });
       }
     }
@@ -343,24 +368,25 @@ async function fetchCSV(url) {
     renderView();
   }
 
-  // -------------------------------------------------------------
-  // INICIALIZACIÓN
-  // -------------------------------------------------------------
+  // Carga inicial de pestañas en Geld
   async function initGeld() {
-    const cCompras = document.getElementById('geld-compras');
-    const cResumen = document.getElementById('geld-resumen');
-    const cGastos = document.getElementById('geld-gastos');
+    const elCompras = document.getElementById('geld-compras');
+    const elResumen = document.getElementById('geld-resumen');
+    const elGastos = document.getElementById('geld-gastos');
 
-    if (cGastos) setupGastos(cGastos);
-    if (cResumen) setupResumen(cResumen);
+    if (elCompras) {
+      const dataCompras = await fetchCSV(URL_COMPRAS);
+      setupCompras(dataCompras, elCompras);
+    }
 
-    try {
-      if (cCompras) {
-        const dataCompras = await fetchCSV(URL_COMPRAS);
-        setupCompras(dataCompras, cCompras);
-      }
-    } catch (e) {
-      console.error('Error al cargar compras:', e);
+    if (elGastos) setupGastos(elGastos);
+
+    // Cargar o refrescar resumen al hacer clic en su pestaña
+    const tabResumenBtn = document.querySelector('[data-tab="geld-resumen"]');
+    if (tabResumenBtn) {
+      tabResumenBtn.addEventListener('click', () => {
+        if (elResumen) setupResumen(elResumen);
+      });
     }
   }
 
