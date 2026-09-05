@@ -2,7 +2,7 @@
  * js/kato.js - Módulo KATO: Registro de Idiomas (Duolingo, XP, Lecciones Diarias)
  */
 KeepModule('kato', () => {
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznDyGCaRoePoaDBJg-OFBC_Bt0f3DPQy8_TWFH9lJSaq02YYJeLUW9uh-NqbRQFiA/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxJCaE7OMlQFdLAh7SUxNUM59mFKFkJ3c2R5EjV2JFW1rqVFSGGKXaH7jcTWFJiIc1/exec';
   const IDIOMAS = ['Aleman', 'Frances', 'Japones', 'Latin'];
 
   let idiomaActual = 'Aleman';
