@@ -40,6 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
         topbarTitle.textContent = navBtn.querySelector('span.flex-1').textContent;
       }
     }
+
+    // Refrescar lista de Dox si la sección activa es 'dox'
+    if (sectionId === 'dox' && typeof obtenerDocumentos === 'function') {
+      obtenerDocumentos();
+    }
+
     closeSidebar();
   }
 
