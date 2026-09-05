@@ -26,7 +26,8 @@
               yellow: '#FEF9C3',   // Tareas
               rose: '#FFE4E6',     // Geld
               orange: '#FFEDD5',   // Links
-              slate: '#F1F5F9'     // Dox
+              slate: '#F1F5F9',    // Dox
+              emerald: '#D1FAE5'   // Bucher
             }
           }
         }
@@ -36,9 +37,6 @@
   
   <!-- Estilos personalizados -->
   <link rel="stylesheet" href="css/styles.css">
-
-  <!-- PapaParse para parseo de CSV -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased font-sans flex flex-col min-h-screen select-none">
 
@@ -62,7 +60,6 @@
 
   <!-- Sidebar / Panel Lateral Deslizante -->
   <aside id="sidebar" class="fixed top-0 left-0 bottom-0 w-72 bg-white z-50 transform -translate-x-full transition-transform duration-300 ease-out shadow-2xl flex flex-col">
-    <!-- Header del Sidebar -->
     <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
       <div class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white font-black flex items-center justify-center text-sm shadow-sm">K</div>
@@ -78,43 +75,42 @@
     <!-- Links de Navegación -->
     <nav class="flex-1 overflow-y-auto p-4 space-y-1.5 text-sm font-medium">
       
-      <!-- Benkyou -->
       <button data-section="benkyou" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-blue/60 transition-colors">
         <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
         <span class="flex-1 text-left font-semibold">Benkyou</span>
       </button>
 
-      <!-- BBM -->
       <button data-section="bbm" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-green/60 transition-colors">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
         <span class="flex-1 text-left font-semibold">BBM</span>
       </button>
 
-      <!-- Goals -->
       <button data-section="goals" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-purple/60 transition-colors">
         <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
         <span class="flex-1 text-left font-semibold">Goals</span>
       </button>
 
-      <!-- Tareas -->
       <button data-section="tareas" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-yellow/60 transition-colors">
         <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
         <span class="flex-1 text-left font-semibold">Tareas</span>
       </button>
 
-      <!-- Geld -->
       <button data-section="geld" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-rose/60 transition-colors">
         <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
         <span class="flex-1 text-left font-semibold">Geld</span>
       </button>
 
-      <!-- Links -->
+      <!-- Bucher (Libros) -->
+      <button data-section="bucher" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-emerald/60 transition-colors">
+        <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>
+        <span class="flex-1 text-left font-semibold">Bucher</span>
+      </button>
+
       <button data-section="links" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-orange/60 transition-colors">
         <span class="w-2.5 h-2.5 rounded-full bg-orange-400"></span>
         <span class="flex-1 text-left font-semibold">Links</span>
       </button>
 
-      <!-- Dox -->
       <button data-section="dox" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-slate/80 transition-colors">
         <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
         <span class="flex-1 text-left font-semibold">Dox</span>
@@ -122,16 +118,14 @@
 
     </nav>
 
-    <!-- Footer del Sidebar -->
     <div class="p-4 border-t border-gray-100 text-xs text-gray-400 text-center">
       KeepAPP PWA • Offline Ready
     </div>
   </aside>
 
-  <!-- Contenedor Principal Dinámico (Single Page Container) -->
+  <!-- Contenedor Principal Dinámico -->
   <main id="main-content" class="flex-1 p-4 max-w-lg mx-auto w-full">
 
-    <!-- Sección: Benkyou -->
     <section id="sec-benkyou" class="app-section hidden space-y-4">
       <div class="border-l-4 border-sky-300 pl-3">
         <h2 class="text-xl font-bold text-gray-800">Benkyou</h2>
@@ -149,7 +143,6 @@
       </div>
     </section>
 
-    <!-- Sección: BBM -->
     <section id="sec-bbm" class="app-section hidden space-y-4">
       <div class="border-l-4 border-emerald-300 pl-3">
         <h2 class="text-xl font-bold text-gray-800">BBM</h2>
@@ -171,7 +164,6 @@
       </div>
     </section>
 
-    <!-- Sección: Goals -->
     <section id="sec-goals" class="app-section hidden space-y-4">
       <div class="border-l-4 border-purple-300 pl-3">
         <h2 class="text-xl font-bold text-gray-800">Goals</h2>
@@ -193,7 +185,6 @@
       </div>
     </section>
 
-    <!-- Sección: Tareas -->
     <section id="sec-tareas" class="app-section hidden space-y-4">
       <div class="border-l-4 border-amber-300 pl-3">
         <h2 class="text-xl font-bold text-gray-800">Tareas</h2>
@@ -204,7 +195,6 @@
       </div>
     </section>
 
-    <!-- Sección: Geld -->
     <section id="sec-geld" class="app-section hidden space-y-4">
       <div class="border-l-4 border-rose-300 pl-3">
         <h2 class="text-xl font-bold text-gray-800">Geld</h2>
@@ -226,7 +216,17 @@
       </div>
     </section>
 
-    <!-- Sección: Links -->
+    <!-- Sección: Bucher (Libros) -->
+    <section id="sec-bucher" class="app-section hidden space-y-4">
+      <div class="border-l-4 border-teal-400 pl-3">
+        <h2 class="text-xl font-bold text-gray-800">Bucher</h2>
+        <p class="text-xs text-gray-500">Biblioteca Personal</p>
+      </div>
+      <div id="bucher-container">
+        <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 text-sm text-gray-600">Cargando biblioteca...</div>
+      </div>
+    </section>
+
     <section id="sec-links" class="app-section hidden space-y-4">
       <div class="border-l-4 border-orange-300 pl-3">
         <h2 class="text-xl font-bold text-gray-800">Links</h2>
@@ -237,7 +237,6 @@
       </div>
     </section>
 
-    <!-- Sección: Dox -->
     <section id="sec-dox" class="app-section hidden space-y-4">
       <div class="border-l-4 border-slate-300 pl-3">
         <h2 class="text-xl font-bold text-gray-800">Dox</h2>
@@ -250,44 +249,14 @@
 
   </main>
 
-  <!-- JS Principal Router y Control del Menú -->
   <script src="js/app.js"></script>
-
-  <!-- Módulos independientes cargados con try/catch aislado -->
   <script src="js/benkyou.js" onerror="console.warn('Fallo al cargar benkyou.js')"></script>
   <script src="js/bbm.js" onerror="console.warn('Fallo al cargar bbm.js')"></script>
   <script src="js/goals.js" onerror="console.warn('Fallo al cargar goals.js')"></script>
   <script src="js/tareas.js" onerror="console.warn('Fallo al cargar tareas.js')"></script>
   <script src="js/geld.js" onerror="console.warn('Fallo al cargar geld.js')"></script>
+  <script src="js/bucher.js" onerror="console.warn('Fallo al cargar bucher.js')"></script>
   <script src="js/links.js" onerror="console.warn('Fallo al cargar links.js')"></script>
   <script src="js/dox.js" onerror="console.warn('Fallo al cargar dox.js')"></script>
-
-  <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js');
-  }
-
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    
-    const banner = document.createElement('div');
-    banner.className = 'fixed bottom-4 left-4 right-4 bg-indigo-600 text-white p-3 rounded-2xl shadow-xl flex items-center justify-between z-50';
-    banner.innerHTML = `
-      <div class="flex items-center gap-2">
-        <img src="./keepApp_logo.png" class="w-8 h-8 rounded-lg">
-        <span class="text-xs font-bold">Instalar KeepAPP</span>
-      </div>
-      <button id="btn-pwa-install" class="bg-white text-indigo-600 text-xs font-bold px-3 py-1.5 rounded-xl">Instalar</button>
-    `;
-    document.body.appendChild(banner);
-
-    document.getElementById('btn-pwa-install').addEventListener('click', () => {
-      banner.remove();
-      deferredPrompt.prompt();
-    });
-  });
-</script>
 </body>
 </html>
