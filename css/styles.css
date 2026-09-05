@@ -1,0 +1,22 @@
+/* Prevenir rebote visual en iOS */
+html, body {
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Transición suave para el Sidebar */
+#sidebar {
+  will-change: transform;
+}
+
+/* Scrollbar personalizado delgado */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E2E8F0;
+  border-radius: 9999px;
+}
