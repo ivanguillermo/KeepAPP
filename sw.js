@@ -2,9 +2,8 @@
  * sw.js - Service Worker para KeepAPP
  */
 
-const CACHE_NAME = 'keepapp-v1';
+const CACHE_NAME = 'keepapp-v2';
 
-// Todos los recursos locales con sus rutas exactas en la estructura
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -16,12 +15,12 @@ const ASSETS_TO_CACHE = [
   './js/benkyou.js',
   './js/dox.js',
   './js/geld.js',
+  './js/bucher.js',
   './js/goals.js',
   './js/tareas.js',
   'https://cdn.tailwindcss.com'
 ];
 
-// Instalación: Guardar archivos en caché
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -31,7 +30,6 @@ self.addEventListener('install', (e) => {
   self.skipWaiting();
 });
 
-// Activación: Limpieza de cachés viejas
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -45,9 +43,7 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
-// Intercepción de peticiones de red
 self.addEventListener('fetch', (e) => {
-  // Ignorar peticiones externas de Apps Script o Google Drive para no guardar respuestas dinámicas
   if (e.request.url.includes('script.google.com') || e.request.url.includes('googleusercontent.com')) {
     return;
   }
@@ -57,13 +53,4 @@ self.addEventListener('fetch', (e) => {
       return cachedResponse || fetch(e.request);
     })
   );
-});
-
-// sw.js
-self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open('keepapp-v1').then((cache) => cache.addAll(['./', './index.html'])));
-});
-
-self.addEventListener('fetch', (e) => {
-  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
 });
