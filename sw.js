@@ -18,6 +18,8 @@ const ASSETS_TO_CACHE = [
   './js/bucher.js',
   './js/goals.js',
   './js/tareas.js',
+  './js/bucher.js',
+  './js/kato.js',
   'https://cdn.tailwindcss.com'
 ];
 
