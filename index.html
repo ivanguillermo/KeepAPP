@@ -1,92 +1,268 @@
-/**
- * KeepAPP Router & Manager
- */
-document.addEventListener('DOMContentLoaded', () => {
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('sidebar-overlay');
-  const btnMenu = document.getElementById('btn-menu');
-  const btnClose = document.getElementById('btn-close-sidebar');
-  const topbarTitle = document.getElementById('topbar-title');
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>KeepAPP</title>
+  
+  <!-- Manifest & PWA Metadata -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="apple-touch-icon" href="icon-192.png">
 
-  // Open / Close Sidebar
-  function openSidebar() {
-    sidebar.classList.remove('-translate-x-full');
-    overlay.classList.remove('hidden');
-    setTimeout(() => overlay.classList.remove('opacity-0'), 10);
-  }
-
-  function closeSidebar() {
-    sidebar.classList.add('-translate-x-full');
-    overlay.classList.add('opacity-0');
-    setTimeout(() => overlay.classList.add('hidden'), 300);
-  }
-
-  btnMenu.addEventListener('click', openSidebar);
-  btnClose.addEventListener('click', closeSidebar);
-  overlay.addEventListener('click', closeSidebar);
-
-  // Navegación por secciones
-  const navBtns = document.querySelectorAll('.nav-btn');
-  const sections = document.querySelectorAll('.app-section');
-
-  function navigateTo(sectionId) {
-    sections.forEach(sec => sec.classList.add('hidden'));
-
-    const targetSection = document.getElementById(`sec-${sectionId}`);
-    if (targetSection) {
-      targetSection.classList.remove('hidden');
-      const navBtn = document.querySelector(`[data-section="${sectionId}"]`);
-      if (navBtn) {
-        topbarTitle.textContent = navBtn.querySelector('span.flex-1').textContent;
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            pastel: {
+              blue: '#E0F2FE',     // Benkyou
+              green: '#DCFCE7',    // BBM
+              purple: '#F3E8FF',   // Goals
+              yellow: '#FEF9C3',   // Tareas
+              rose: '#FFE4E6',     // Geld
+              orange: '#FFEDD5',   // Links
+              slate: '#F1F5F9'     // Dox
+            }
+          }
+        }
       }
     }
-    closeSidebar();
-  }
+  </script>
+  
+  <!-- Estilos personalizados -->
+  <link rel="stylesheet" href="css/styles.css">
 
-  navBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = btn.getAttribute('data-section');
-      navigateTo(target);
-    });
-  });
+  <!-- PapaParse para parseo de CSV -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased font-sans flex flex-col min-h-screen select-none">
 
-  // Manejo de Tabs internas en subsecciones
-  document.addEventListener('click', (e) => {
-    const tabBtn = e.target.closest('.tab-btn');
-    if (!tabBtn) return;
+  <!-- Top Navbar -->
+  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 py-3 flex items-center justify-between shadow-sm">
+    <div class="flex items-center gap-3">
+      <button id="btn-menu" aria-label="Abrir menú" class="p-2 rounded-xl text-gray-600 hover:bg-gray-100 active:scale-95 transition-all">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+      <h1 id="topbar-title" class="text-lg font-bold text-gray-800 tracking-tight">KeepAPP</h1>
+    </div>
 
-    const targetTabId = tabBtn.getAttribute('data-tab');
-    const parentSection = tabBtn.closest('.app-section');
+    <!-- Indicador de estado de la app/conexión -->
+    <div id="status-badge" class="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
+  </header>
 
-    // Desactivar todos los botones de esa sección
-    parentSection.querySelectorAll('.tab-btn').forEach(b => {
-      b.classList.remove('bg-white', 'shadow-xs', 'text-gray-800');
-      b.classList.add('text-gray-500');
-    });
+  <!-- Overlay para cerrar el menú en móvil -->
+  <div id="sidebar-overlay" class="fixed inset-0 bg-black/30 backdrop-blur-xs z-40 hidden opacity-0 transition-opacity duration-300"></div>
 
-    // Ocultar contenidos de esa sección
-    parentSection.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+  <!-- Sidebar / Panel Lateral Deslizante -->
+  <aside id="sidebar" class="fixed top-0 left-0 bottom-0 w-72 bg-white z-50 transform -translate-x-full transition-transform duration-300 ease-out shadow-2xl flex flex-col">
+    <!-- Header del Sidebar -->
+    <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white font-black flex items-center justify-center text-sm shadow-sm">K</div>
+        <span class="font-bold text-gray-800 text-lg">KeepAPP</span>
+      </div>
+      <button id="btn-close-sidebar" class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
 
-    // Activar botón y contenido seleccionado
-    tabBtn.classList.add('bg-white', 'shadow-xs', 'text-gray-800');
-    tabBtn.classList.remove('text-gray-500');
+    <!-- Links de Navegación -->
+    <nav class="flex-1 overflow-y-auto p-4 space-y-1.5 text-sm font-medium">
+      
+      <!-- Benkyou -->
+      <button data-section="benkyou" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-blue/60 transition-colors">
+        <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
+        <span class="flex-1 text-left font-semibold">Benkyou</span>
+      </button>
 
-    const targetContent = document.getElementById(targetTabId);
-    if (targetContent) targetContent.classList.remove('hidden');
-  });
+      <!-- BBM -->
+      <button data-section="bbm" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-green/60 transition-colors">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+        <span class="flex-1 text-left font-semibold">BBM</span>
+      </button>
 
-  // Sección inicial por defecto
-  navigateTo('tareas');
-});
+      <!-- Goals -->
+      <button data-section="goals" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-purple/60 transition-colors">
+        <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+        <span class="flex-1 text-left font-semibold">Goals</span>
+      </button>
 
-/**
- * Helper global resiliente para que los módulos carguen sin tumbar la app
- */
-window.KeepModule = function(moduleName, initFn) {
-  try {
-    initFn();
-    console.log(`[KeepAPP] Módulo '${moduleName}' inicializado con éxito.`);
-  } catch (err) {
-    console.error(`[KeepAPP Error] El módulo '${moduleName}' falló:`, err);
-  }
-};
+      <!-- Tareas -->
+      <button data-section="tareas" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-yellow/60 transition-colors">
+        <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+        <span class="flex-1 text-left font-semibold">Tareas</span>
+      </button>
+
+      <!-- Geld -->
+      <button data-section="geld" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-rose/60 transition-colors">
+        <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
+        <span class="flex-1 text-left font-semibold">Geld</span>
+      </button>
+
+      <!-- Links -->
+      <button data-section="links" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-orange/60 transition-colors">
+        <span class="w-2.5 h-2.5 rounded-full bg-orange-400"></span>
+        <span class="flex-1 text-left font-semibold">Links</span>
+      </button>
+
+      <!-- Dox -->
+      <button data-section="dox" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-slate/80 transition-colors">
+        <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+        <span class="flex-1 text-left font-semibold">Dox</span>
+      </button>
+
+    </nav>
+
+    <!-- Footer del Sidebar -->
+    <div class="p-4 border-t border-gray-100 text-xs text-gray-400 text-center">
+      KeepAPP PWA • Offline Ready
+    </div>
+  </aside>
+
+  <!-- Contenedor Principal Dinámico (Single Page Container) -->
+  <main id="main-content" class="flex-1 p-4 max-w-lg mx-auto w-full">
+
+    <!-- Sección: Benkyou -->
+    <section id="sec-benkyou" class="app-section hidden space-y-4">
+      <div class="border-l-4 border-sky-300 pl-3">
+        <h2 class="text-xl font-bold text-gray-800">Benkyou</h2>
+        <p class="text-xs text-gray-500">Estudios y Formación</p>
+      </div>
+      <!-- Tab Bar Subsecciones -->
+      <div class="flex bg-gray-100 p-1 rounded-xl text-xs font-medium">
+        <button data-tab="benkyou-una" class="tab-btn flex-1 py-1.5 rounded-lg text-center bg-white shadow-xs text-gray-800">UNA</button>
+        <button data-tab="benkyou-uney" class="tab-btn flex-1 py-1.5 rounded-lg text-center text-gray-500">UNEY</button>
+        <button data-tab="benkyou-cursos" class="tab-btn flex-1 py-1.5 rounded-lg text-center text-gray-500">Cursos</button>
+      </div>
+      <div id="benkyou-una" class="tab-content">
+        <div class="p-4 bg-pastel-blue/40 rounded-2xl border border-sky-100 text-sm text-gray-600">Cargando datos UNA...</div>
+      </div>
+      <div id="benkyou-uney" class="tab-content hidden">
+        <div class="p-4 bg-pastel-blue/40 rounded-2xl border border-sky-100 text-sm text-gray-600">Cargando datos UNEY...</div>
+      </div>
+      <div id="benkyou-cursos" class="tab-content hidden">
+        <div class="p-4 bg-pastel-blue/40 rounded-2xl border border-sky-100 text-sm text-gray-600">Cargando Cursos...</div>
+      </div>
+    </section>
+
+    <!-- Sección: BBM -->
+    <section id="sec-bbm" class="app-section hidden space-y-4">
+      <div class="border-l-4 border-emerald-300 pl-3">
+        <h2 class="text-xl font-bold text-gray-800">BBM</h2>
+        <p class="text-xs text-gray-500">Entrenamiento y Salud</p>
+      </div>
+      <div class="flex bg-gray-100 p-1 rounded-xl text-xs font-medium">
+        <button data-tab="bbm-rutina" class="tab-btn flex-1 py-1.5 rounded-lg text-center bg-white shadow-xs text-gray-800">Rutina</button>
+        <button data-tab="bbm-medidas" class="tab-btn flex-1 py-1.5 rounded-lg text-center text-gray-500">Medidas</button>
+        <button data-tab="bbm-records" class="tab-btn flex-1 py-1.5 rounded-lg text-center text-gray-500">Records</button>
+      </div>
+      <div id="bbm-rutina" class="tab-content">
+        <div class="p-4 bg-pastel-green/40 rounded-2xl border border-emerald-100 text-sm text-gray-600">Rutina de hoy...</div>
+      </div>
+      <div id="bbm-medidas" class="tab-content hidden">
+        <div class="p-4 bg-pastel-green/40 rounded-2xl border border-emerald-100 text-sm text-gray-600">Historial de medidas...</div>
+      </div>
+      <div id="bbm-records" class="tab-content hidden">
+        <div class="p-4 bg-pastel-green/40 rounded-2xl border border-emerald-100 text-sm text-gray-600">Marcas e indicadores...</div>
+      </div>
+    </section>
+
+    <!-- Sección: Goals -->
+    <section id="sec-goals" class="app-section hidden space-y-4">
+      <div class="border-l-4 border-purple-300 pl-3">
+        <h2 class="text-xl font-bold text-gray-800">Goals</h2>
+        <p class="text-xs text-gray-500">Objetivos y Metas</p>
+      </div>
+      <div class="flex bg-gray-100 p-1 rounded-xl text-xs font-medium">
+        <button data-tab="goals-300" class="tab-btn flex-1 py-1.5 rounded-lg text-center bg-white shadow-xs text-gray-800">300</button>
+        <button data-tab="goals-tsuki" class="tab-btn flex-1 py-1.5 rounded-lg text-center text-gray-500">Tsuki</button>
+        <button data-tab="goals-weekly" class="tab-btn flex-1 py-1.5 rounded-lg text-center text-gray-500">Weekly</button>
+      </div>
+      <div id="goals-300" class="tab-content">
+        <div class="p-4 bg-pastel-purple/40 rounded-2xl border border-purple-100 text-sm text-gray-600">Metas a largo plazo (300)...</div>
+      </div>
+      <div id="goals-tsuki" class="tab-content hidden">
+        <div class="p-4 bg-pastel-purple/40 rounded-2xl border border-purple-100 text-sm text-gray-600">Metas del mes...</div>
+      </div>
+      <div id="goals-weekly" class="tab-content hidden">
+        <div class="p-4 bg-pastel-purple/40 rounded-2xl border border-purple-100 text-sm text-gray-600">Metas de la semana...</div>
+      </div>
+    </section>
+
+    <!-- Sección: Tareas -->
+    <section id="sec-tareas" class="app-section hidden space-y-4">
+      <div class="border-l-4 border-amber-300 pl-3">
+        <h2 class="text-xl font-bold text-gray-800">Tareas</h2>
+        <p class="text-xs text-gray-500">Prioridad por puntaje</p>
+      </div>
+      <div class="p-4 bg-pastel-yellow/40 rounded-2xl border border-amber-100 text-sm text-gray-600">
+        Cargando lista de tareas...
+      </div>
+    </section>
+
+    <!-- Sección: Geld -->
+    <section id="sec-geld" class="app-section hidden space-y-4">
+      <div class="border-l-4 border-rose-300 pl-3">
+        <h2 class="text-xl font-bold text-gray-800">Geld</h2>
+        <p class="text-xs text-gray-500">Finanzas Personales</p>
+      </div>
+      <div class="flex bg-gray-100 p-1 rounded-xl text-xs font-medium">
+        <button data-tab="geld-diario" class="tab-btn flex-1 py-1.5 rounded-lg text-center bg-white shadow-xs text-gray-800">Libro Diario</button>
+        <button data-tab="geld-compras" class="tab-btn flex-1 py-1.5 rounded-lg text-center text-gray-500">Compras</button>
+        <button data-tab="geld-movs" class="tab-btn flex-1 py-1.5 rounded-lg text-center text-gray-500">Ingresos/Gastos</button>
+      </div>
+      <div id="geld-diario" class="tab-content">
+        <div class="p-4 bg-pastel-rose/40 rounded-2xl border border-rose-100 text-sm text-gray-600">Asientos de partida doble...</div>
+      </div>
+      <div id="geld-compras" class="tab-content hidden">
+        <div class="p-4 bg-pastel-rose/40 rounded-2xl border border-rose-100 text-sm text-gray-600">Lista de compras e inventario...</div>
+      </div>
+      <div id="geld-movs" class="tab-content hidden">
+        <div class="p-4 bg-pastel-rose/40 rounded-2xl border border-rose-100 text-sm text-gray-600">Resumen financiero...</div>
+      </div>
+    </section>
+
+    <!-- Sección: Links -->
+    <section id="sec-links" class="app-section hidden space-y-4">
+      <div class="border-l-4 border-orange-300 pl-3">
+        <h2 class="text-xl font-bold text-gray-800">Links</h2>
+        <p class="text-xs text-gray-500">Accesos Directos</p>
+      </div>
+      <div class="p-4 bg-pastel-orange/40 rounded-2xl border border-orange-100 text-sm text-gray-600">
+        Enlaces guardados...
+      </div>
+    </section>
+
+    <!-- Sección: Dox -->
+    <section id="sec-dox" class="app-section hidden space-y-4">
+      <div class="border-l-4 border-slate-300 pl-3">
+        <h2 class="text-xl font-bold text-gray-800">Dox</h2>
+        <p class="text-xs text-gray-500">Documentos Escaneados</p>
+      </div>
+      <div class="p-4 bg-pastel-slate/80 rounded-2xl border border-slate-200 text-sm text-gray-600">
+        Archivos y escaneos...
+      </div>
+    </section>
+
+  </main>
+
+  <!-- JS Principal Router y Control del Menú -->
+  <script src="js/app.js"></script>
+
+  <!-- Módulos independientes cargados con try/catch aislado -->
+  <script src="js/benkyou.js" onerror="console.warn('Fallo al cargar benkyou.js')"></script>
+  <script src="js/bbm.js" onerror="console.warn('Fallo al cargar bbm.js')"></script>
+  <script src="js/goals.js" onerror="console.warn('Fallo al cargar goals.js')"></script>
+  <script src="js/tareas.js" onerror="console.warn('Fallo al cargar tareas.js')"></script>
+  <script src="js/geld.js" onerror="console.warn('Fallo al cargar geld.js')"></script>
+  <script src="js/links.js" onerror="console.warn('Fallo al cargar links.js')"></script>
+  <script src="js/dox.js" onerror="console.warn('Fallo al cargar dox.js')"></script>
+</body>
+</html>
