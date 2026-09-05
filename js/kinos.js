@@ -3,7 +3,7 @@
  */
 KeepModule('kinos', () => {
   const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznDyGCaRoePoaDBJg-OFBC_Bt0f3DPQy8_TWFH9lJSaq02YYJeLUW9uh-NqbRQFiA/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbweaI2vjh70zDNoCkofDc1r6BUukyZ-UUUH64_Mb3v3eqBbuC3aWRaTTWJoN7qkozy8/exec';
   const URL_KINOS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=kinos`;
 
   const MESES = [
