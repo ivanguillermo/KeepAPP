@@ -1,151 +1,172 @@
-/* ==========================================
-   MÓDULO: GOALS / METAS - KEEPAPP
-   Carga con PapaParse desde Google Sheets (CSV)
-   ========================================== */
-
-const GoalsModule = (() => {
+/**
+ * Módulo BBM (Body Building & Metrics) con carga remota vía PapaParse
+ */
+KeepModule('bbm', () => {
   const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
-  const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=goals`;
-
-  let goalsData = [];
-  let currentCategory = 'todas';
-
-  /* ------------------------------------------
-     1. INICIALIZACIÓN Y EVENTOS
-     ------------------------------------------ */
-  const init = () => {
-    fetchGoals();
+  
+  const URLS = {
+    rutina: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Rutina`,
+    medidas: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Medidas`,
+    records: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Records`
   };
 
-  const fetchGoals = () => {
-    if (typeof Papa === 'undefined') {
-      console.error('PapaParse no está disponible.');
-      return;
-    }
-
-    Papa.parse(CSV_URL, {
-      download: true,
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        goalsData = processGoals(results.data);
-        renderCategories();
-        renderGoals();
-      },
-      error: (err) => {
-        console.error('Error al cargar la pestaña goals:', err);
-      }
-    });
-  };
-
-  const processGoals = (data) => {
-    return data.map((item, index) => ({
-      id: item.id || `goal-${index}`,
-      texto: item.meta || item.goal || item.texto || item.Meta || '',
-      categoria: (item.categoria || item.Categoria || 'General').trim(),
-      completada: (item.completada || item.estado || '').toLowerCase() === 'true' || item.completada === '1'
-    })).filter(g => g.texto.trim() !== '');
-  };
-
-  /* ------------------------------------------
-     2. RENDERIZADO DE CATEGORÍAS Y METAS
-     ------------------------------------------ */
-  const renderCategories = () => {
-    const container = document.getElementById('goals-tabs-container');
-    if (!container) return;
-
-    // Obtener categorías únicas
-    const categories = ['todas', ...new Set(goalsData.map(g => g.categoria))];
-
-    container.innerHTML = categories.map(cat => `
-      <button class="goals-tab-btn ${cat === currentCategory ? 'active' : ''}" data-cat="${escapeHTML(cat)}">
-        ${capitalize(cat)}
-      </button>
-    `).join('');
-
-    container.querySelectorAll('.goals-tab-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        currentCategory = e.currentTarget.dataset.cat;
-        renderCategories();
-        renderGoals();
+  // Función helper para cargar CSV con PapaParse retornando una Promesa
+  function fetchCSV(url) {
+    return new Promise((resolve, reject) => {
+      Papa.parse(url, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => resolve(results.data),
+        error: (error) => reject(error)
       });
     });
-  };
+  }
 
-  const renderGoals = () => {
-    const container = document.getElementById('goals-list');
+  // 1. Renderizar Rutina
+  function renderRutina(data) {
+    const container = document.getElementById('bbm-rutina');
     if (!container) return;
 
-    const filtered = currentCategory === 'todas' 
-      ? goalsData 
-      : goalsData.filter(g => g.categoria === currentCategory);
+    const dias = {};
+    data.forEach(item => {
+      const dia = item.dia || item.Dia || 'General';
+      if (!dias[dia]) dias[dia] = [];
+      dias[dia].push(item);
+    });
 
-    if (filtered.length === 0) {
-      container.innerHTML = `
-        <div class="card" style="text-align: center; color: var(--text-dim);">
-          <p style="margin: 0;">No hay metas en esta categoría.</p>
-        </div>`;
-      return;
+    let html = '<div class="space-y-4">';
+    for (const [dia, ejercicios] of Object.entries(dias)) {
+      html += `
+        <div class="bg-white rounded-2xl p-4 shadow-xs border border-emerald-100">
+          <div class="flex items-center justify-between mb-3 border-b border-gray-100 pb-2">
+            <span class="font-bold text-emerald-800 text-sm tracking-wide uppercase">${dia}</span>
+            <span class="text-xs bg-pastel-green text-emerald-700 px-2.5 py-0.5 rounded-full font-semibold">${ejercicios.length} ejercicios</span>
+          </div>
+          <div class="divide-y divide-gray-50">
+      `;
+
+      ejercicios.forEach(ej => {
+        html += `
+          <div class="py-2.5 flex items-center justify-between gap-2">
+            <div class="flex-1">
+              <p class="font-semibold text-gray-800 text-sm">${ej.ejercicio || ej.Ejercicio}</p>
+              ${ej.notas || ej.Notas ? `<p class="text-xs text-emerald-600 mt-0.5">💡 ${ej.notas || ej.Notas}</p>` : ''}
+            </div>
+            <div class="text-right whitespace-nowrap">
+              <span class="inline-block text-xs font-bold text-gray-700 bg-gray-100 px-2 py-1 rounded-lg">
+                ${ej.series || ej.Series} × ${ej.reps || ej.Reps}
+              </span>
+            </div>
+          </div>
+        `;
+      });
+
+      html += `</div></div>`;
     }
+    html += '</div>';
+    container.innerHTML = html;
+  }
 
-    container.innerHTML = filtered.map(g => `
-      <div class="swipe-item-wrapper" data-id="${g.id}">
-        <div class="swipe-content goal-card ${g.completada ? 'completed' : ''}">
-          <div class="goal-info">
-            <span class="badge" style="background: var(--pastel-goals-bg); color: var(--pastel-goals-accent); border: 1px solid var(--pastel-goals-border); align-self: flex-start;">
-              ${escapeHTML(g.categoria)}
-            </span>
-            <span class="goal-text">${escapeHTML(g.texto)}</span>
+  // 2. Renderizar Medidas
+  function renderMedidas(data) {
+    const container = document.getElementById('bbm-medidas');
+    if (!container) return;
+
+    let html = '<div class="space-y-3">';
+    const medidasOrdenadas = [...data].reverse();
+
+    medidasOrdenadas.forEach(med => {
+      html += `
+        <div class="bg-white rounded-2xl p-4 shadow-xs border border-emerald-100 space-y-3">
+          <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+            <span class="text-xs font-bold text-gray-400">${med.fecha || med.Fecha}</span>
+            <div class="text-emerald-700 font-black text-base">${med.peso || med.Peso} <span class="text-xs font-medium">kg</span></div>
+          </div>
+          <div class="grid grid-cols-3 gap-2 text-center text-xs">
+            <div class="bg-pastel-green/30 p-2 rounded-xl">
+              <span class="block text-gray-400 text-[10px] uppercase font-bold">Brazo</span>
+              <span class="font-bold text-gray-800">${med.brazo || med.Brazo} cm</span>
+            </div>
+            <div class="bg-pastel-green/30 p-2 rounded-xl">
+              <span class="block text-gray-400 text-[10px] uppercase font-bold">Pecho</span>
+              <span class="font-bold text-gray-800">${med.pecho || med.Pecho} cm</span>
+            </div>
+            <div class="bg-pastel-green/30 p-2 rounded-xl">
+              <span class="block text-gray-400 text-[10px] uppercase font-bold">Cintura</span>
+              <span class="font-bold text-gray-800">${med.cintura || med.Cintura} cm</span>
+            </div>
+            <div class="bg-pastel-green/30 p-2 rounded-xl">
+              <span class="block text-gray-400 text-[10px] uppercase font-bold">Muslo</span>
+              <span class="font-bold text-gray-800">${med.muslo || med.Muslo} cm</span>
+            </div>
+            <div class="bg-pastel-green/30 p-2 rounded-xl col-span-2">
+              <span class="block text-gray-400 text-[10px] uppercase font-bold">% Grasa</span>
+              <span class="font-bold text-emerald-800">${med.grasa || med.Grasa}%</span>
+            </div>
           </div>
         </div>
-        <button class="swipe-action-btn" onclick="GoalsModule.toggleGoal('${g.id}')">
-          ${g.completada ? 'Desmarcar' : 'Listo'}
-        </button>
-      </div>
-    `).join('');
-
-    setupSwipeGestures();
-  };
-
-  /* ------------------------------------------
-     3. GESTOS SWIPE Y ACCIONES
-     ------------------------------------------ */
-  const setupSwipeGestures = () => {
-    const wrappers = document.querySelectorAll('.swipe-item-wrapper');
-
-    wrappers.forEach(wrapper => {
-      let startX = 0;
-      let currentX = 0;
-
-      wrapper.addEventListener('touchstart', (e) => {
-        startX = e.touches[0].clientX;
-      }, { passive: true });
-
-      wrapper.addEventListener('touchmove', (e) => {
-        currentX = e.touches[0].clientX;
-        const diff = startX - currentX;
-
-        if (diff > 30) {
-          wrapper.classList.add('swiped');
-        } else if (diff < -30) {
-          wrapper.classList.remove('swiped');
-        }
-      }, { passive: true });
+      `;
     });
-  };
 
-  const toggleGoal = (id) => {
-    const goal = goalsData.find(g => g.id === id);
-    if (goal) {
-      goal.completada = !goal.completada;
-      renderGoals();
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  // 3. Renderizar Records
+  function renderRecords(data) {
+    const container = document.getElementById('bbm-records');
+    if (!container) return;
+
+    const porEjercicio = {};
+    data.forEach(rec => {
+      const ej = rec.ejercicio || rec.Ejercicio;
+      if (!porEjercicio[ej]) porEjercicio[ej] = [];
+      porEjercicio[ej].push(rec);
+    });
+
+    let html = '<div class="space-y-4">';
+    for (const [ejercicio, records] of Object.entries(porEjercicio)) {
+      html += `
+        <div class="bg-white rounded-2xl p-4 shadow-xs border border-emerald-100">
+          <h3 class="font-bold text-gray-800 text-sm mb-3 border-b border-gray-100 pb-2">${ejercicio}</h3>
+          <div class="grid grid-cols-2 gap-2">
+      `;
+
+      records.forEach(r => {
+        html += `
+          <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+            <div>
+              <span class="text-[10px] font-black tracking-wider text-emerald-600 block uppercase">${r.reps || r.Reps}</span>
+              <span class="text-[10px] text-gray-400">${r.fecha || r.Fecha}</span>
+            </div>
+            <span class="font-black text-sm text-gray-800">${r.peso || r.Peso} <span class="text-[10px] font-normal text-gray-500">kg</span></span>
+          </div>
+        `;
+      });
+
+      html += `</div></div>`;
     }
-  };
+    html += '</div>';
+    container.innerHTML = html;
+  }
 
-  const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
-  const escapeHTML = (str) => str ? String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)) : '';
+  // Carga asíncrona de los 3 endpoints CSV
+  async function initBBM() {
+    try {
+      const [rutinaData, medidasData, recordsData] = await Promise.all([
+        fetchCSV(URLS.rutina),
+        fetchCSV(URLS.medidas),
+        fetchCSV(URLS.records)
+      ]);
 
-  return { init, fetchGoals, toggleGoal };
-})();
+      renderRutina(rutinaData);
+      renderMedidas(medidasData);
+      renderRecords(recordsData);
+    } catch (err) {
+      console.error('Error cargando datos de Google Sheets mediante PapaParse:', err);
+    }
+  }
 
-window.GoalsModule = GoalsModule;
+  initBBM();
+});
