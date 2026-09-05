@@ -159,117 +159,147 @@ KeepModule('geld', () => {
   // 3. SUBSECCIÓN GASTOS (REGISTRO INDEPENDIENTE)
   // -------------------------------------------------------------
   function setupGastos(container) {
-    if (!container) return;
+  if (!container) return; //[cite: 10]
 
-    let gastosGuardados = JSON.parse(localStorage.getItem('geld_gastos_personales') || '[]');
+  const URL_GASTOS_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=gastos`; //[cite: 7, 8, 10, 11]
 
-    function renderView() {
-      let html = `
-        <div class="space-y-4">
-          <button id="btn-nuevo-gasto" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-2xl text-xs shadow-xs transition-colors">
-            + Nuevo Gasto
-          </button>
+  async function renderView() {
+    let gastosGuardados = [];
 
-          <form id="form-gasto" class="hidden bg-white p-4 rounded-2xl border border-emerald-200 shadow-xs space-y-3">
-            <p class="text-xs font-bold text-emerald-800 uppercase border-b border-gray-100 pb-2">Registrar Factura / Gasto</p>
-
-            <div>
-              <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Descripción</label>
-              <input type="text" id="gasto-desc" required placeholder="Ej. Almuerzo, Harina" class="w-full bg-gray-50 text-xs p-2 rounded-xl border border-gray-200 outline-none">
-            </div>
-
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Monto</label>
-                <input type="number" step="0.01" id="gasto-monto" required placeholder="0.00" class="w-full bg-gray-50 text-xs p-2 rounded-xl border border-gray-200 outline-none">
-              </div>
-              <div>
-                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Lugar</label>
-                <input type="text" id="gasto-lugar" placeholder="Ej. Unicasa, Bodega" class="w-full bg-gray-50 text-xs p-2 rounded-xl border border-gray-200 outline-none">
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Método de Pago</label>
-              <select id="gasto-metodo" class="w-full bg-gray-50 text-xs p-2 rounded-xl border border-gray-200 outline-none font-semibold text-gray-700">
-                <option value="Efectivo">Efectivo</option>
-                <option value="miBanesco">miBanesco</option>
-                <option value="BanescoSR">BanescoSR</option>
-                <option value="TarjetaNaranja">TarjetaNaranja</option>
-                <option value="Zulima">Zulima</option>
-                <option value="Cashea">Cashea</option>
-                <option value="Otro">Otro</option>
-              </select>
-            </div>
-
-            <div class="flex gap-2 pt-2">
-              <button type="button" id="btn-cancelar-gasto" class="flex-1 bg-gray-100 text-gray-600 text-xs font-bold py-2 rounded-xl">Cancelar</button>
-              <button type="submit" class="flex-1 bg-emerald-600 text-white text-xs font-bold py-2 rounded-xl">Guardar</button>
-            </div>
-          </form>
-
-          <div class="bg-white rounded-2xl p-4 shadow-xs border border-emerald-100 space-y-2 max-h-[50vh] overflow-y-auto">
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Gastos Registrados</p>
-      `;
-
-      if (gastosGuardados.length === 0) {
-        html += `<p class="text-xs text-gray-400 py-4 text-center">No hay gastos guardados aún.</p>`;
-      } else {
-        gastosGuardados.forEach(g => {
-          html += `
-            <div class="p-2.5 bg-gray-50 rounded-xl border border-gray-100 flex justify-between items-center text-xs">
-              <div>
-                <p class="font-bold text-gray-800">${g.descripcion}</p>
-                <p class="text-[10px] text-gray-400">${g.lugar || 'N/A'} • <span class="text-emerald-700 font-semibold">${g.metodo}</span></p>
-              </div>
-              <span class="font-black text-gray-900">${g.monto}</span>
-            </div>
-          `;
-        });
-      }
-
-      html += `</div></div>`;
-      container.innerHTML = html;
-
-      const btnNuevo = container.querySelector('#btn-nuevo-gasto');
-      const form = container.querySelector('#form-gasto');
-      const btnCancelar = container.querySelector('#btn-cancelar-gasto');
-
-      if (btnNuevo && form) {
-        btnNuevo.addEventListener('click', () => {
-          form.classList.remove('hidden');
-          btnNuevo.classList.add('hidden');
-        });
-      }
-
-      if (btnCancelar && form) {
-        btnCancelar.addEventListener('click', () => {
-          form.classList.add('hidden');
-          btnNuevo.classList.remove('hidden');
-        });
-      }
-
-      if (form) {
-        form.addEventListener('submit', (e) => {
-          e.preventDefault();
-          const nuevoGasto = {
-            descripcion: container.querySelector('#gasto-desc').value,
-            monto: container.querySelector('#gasto-monto').value,
-            lugar: container.querySelector('#gasto-lugar').value,
-            metodo: container.querySelector('#gasto-metodo').value,
-            fecha: new Date().toLocaleDateString()
-          };
-
-          gastosGuardados.unshift(nuevoGasto);
-          localStorage.setItem('geld_gastos_personales', JSON.stringify(gastosGuardados));
-          renderView();
-        });
-      }
+    try {
+      gastosGuardados = await fetchCSV(URL_GASTOS_CSV); //[cite: 10]
+    } catch (e) {
+      console.warn("No se pudo leer la pestaña gastos desde Google Sheets, leyendo localmente:", e);
+      gastosGuardados = JSON.parse(localStorage.getItem('geld_gastos_personales') || '[]'); //[cite: 10]
     }
 
-    renderView();
+    let html = `
+      <div class="space-y-4">
+        <button id="btn-nuevo-gasto" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-2xl text-xs shadow-xs transition-colors">
+          + Nuevo Gasto
+        </button>
+
+        <form id="form-gasto" class="hidden bg-white p-4 rounded-2xl border border-emerald-200 shadow-xs space-y-3">
+          <p class="text-xs font-bold text-emerald-800 uppercase border-b border-gray-100 pb-2">Registrar Factura / Gasto</p>
+
+          <div>
+            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Descripción</label>
+            <input type="text" id="gasto-desc" required placeholder="Ej. Almuerzo, Harina" class="w-full bg-gray-50 text-xs p-2 rounded-xl border border-gray-200 outline-none">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Monto</label>
+              <input type="number" step="0.01" id="gasto-monto" required placeholder="0.00" class="w-full bg-gray-50 text-xs p-2 rounded-xl border border-gray-200 outline-none">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Lugar</label>
+              <input type="text" id="gasto-lugar" placeholder="Ej. Unicasa, Bodega" class="w-full bg-gray-50 text-xs p-2 rounded-xl border border-gray-200 outline-none">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Método de Pago</label>
+            <select id="gasto-metodo" class="w-full bg-gray-50 text-xs p-2 rounded-xl border border-gray-200 outline-none font-semibold text-gray-700">
+              <option value="Efectivo">Efectivo</option>
+              <option value="miBanesco">miBanesco</option>
+              <option value="BanescoSR">BanescoSR</option>
+              <option value="TarjetaNaranja">TarjetaNaranja</option>
+              <option value="Zulima">Zulima</option>
+              <option value="Cashea">Cashea</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+
+          <div class="flex gap-2 pt-2">
+            <button type="button" id="btn-cancelar-gasto" class="flex-1 bg-gray-100 text-gray-600 text-xs font-bold py-2 rounded-xl">Cancelar</button>
+            <button type="submit" id="btn-guardar-gasto" class="flex-1 bg-emerald-600 text-white text-xs font-bold py-2 rounded-xl">Guardar</button>
+          </div>
+          <p id="gasto-status" class="text-[11px] text-center hidden"></p>
+        </form>
+
+        <div class="bg-white rounded-2xl p-4 shadow-xs border border-emerald-100 space-y-2 max-h-[50vh] overflow-y-auto">
+          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Gastos Registrados</p>
+    `; //[cite: 10]
+
+    if (gastosGuardados.length === 0) {
+      html += `<p class="text-xs text-gray-400 py-4 text-center">No hay gastos guardados aún.</p>`; //[cite: 10]
+    } else {
+      gastosGuardados.reverse().forEach(g => {
+        const desc = g.Descripción || g.descripcion || '-';
+        const monto = g.Monto || g.monto || '0.00';
+        const lugar = g.Lugar || g.lugar || 'N/A';
+        const metodo = g.Método || g.metodo || '-';
+
+        html += `
+          <div class="p-2.5 bg-gray-50 rounded-xl border border-gray-100 flex justify-between items-center text-xs">
+            <div>
+              <p class="font-bold text-gray-800">${desc}</p>
+              <p class="text-[10px] text-gray-400">${lugar} • <span class="text-emerald-700 font-semibold">${metodo}</span></p>
+            </div>
+            <span class="font-black text-gray-900">${monto}</span>
+          </div>
+        `; //[cite: 10]
+      });
+    }
+
+    html += `</div></div>`; //[cite: 10]
+    container.innerHTML = html; //[cite: 10]
+
+    const btnNuevo = container.querySelector('#btn-nuevo-gasto'); //[cite: 10]
+    const form = container.querySelector('#form-gasto'); //[cite: 10]
+    const btnCancelar = container.querySelector('#btn-cancelar-gasto'); //[cite: 10]
+    const btnGuardar = container.querySelector('#btn-guardar-gasto');
+    const statusMsg = container.querySelector('#gasto-status');
+
+    if (btnNuevo && form) {
+      btnNuevo.addEventListener('click', () => {
+        form.classList.remove('hidden'); //[cite: 10]
+        btnNuevo.classList.add('hidden'); //[cite: 10]
+      });
+    }
+
+    if (btnCancelar && form) {
+      btnCancelar.addEventListener('click', () => {
+        form.classList.add('hidden'); //[cite: 10]
+        btnNuevo.classList.remove('hidden'); //[cite: 10]
+      });
+    }
+
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault(); //[cite: 10]
+        btnGuardar.disabled = true;
+        statusMsg.className = "text-[11px] text-center text-emerald-600 block font-semibold";
+        statusMsg.textContent = "Enviando gasto a Google Sheets...";
+
+        const nuevoGasto = {
+          descripcion: container.querySelector('#gasto-desc').value, //[cite: 10]
+          monto: container.querySelector('#gasto-monto').value, //[cite: 10]
+          lugar: container.querySelector('#gasto-lugar').value, //[cite: 10]
+          metodo: container.querySelector('#gasto-metodo').value, //[cite: 10]
+          fecha: new Date().toLocaleDateString() //[cite: 10]
+        };
+
+        try {
+          await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'guardarGasto', payload: nuevoGasto })
+          });
+
+          renderView();
+        } catch (err) {
+          statusMsg.className = "text-[11px] text-center text-red-500 block";
+          statusMsg.textContent = "Error al guardar: " + err.message;
+          btnGuardar.disabled = false;
+        }
+      });
+    }
   }
 
+  renderView(); 
+}
   // -------------------------------------------------------------
   // INICIALIZACIÓN
   // -------------------------------------------------------------
