@@ -165,14 +165,27 @@ KeepModule('geld', () => {
     if (!container) return;
 
     async function renderView() {
-      let gastosGuardados = [];
+      let gastosRemotos = [];
+      let gastosLocales = JSON.parse(localStorage.getItem('geld_gastos_personales') || '[]');
 
       try {
-        gastosGuardados = await fetchCSV(URL_GASTOS_CSV);
+        gastosRemotos = await fetchCSV(URL_GASTOS_CSV);
       } catch (e) {
-        console.warn("No se pudo leer la pestaña gastos desde Google Sheets, leyendo localmente:", e);
-        gastosGuardados = JSON.parse(localStorage.getItem('geld_gastos_personales') || '[]');
+        console.warn("No se pudo leer la pestaña gastos desde Google Sheets, usando local:", e);
       }
+
+      // Fusionar datos remotos con locales evitando duplicados
+      const gastosGuardados = [...gastosRemotos];
+      gastosLocales.forEach(local => {
+        const existe = gastosRemotos.some(remoto => 
+          (remoto.Descripción || remoto.descripcion) === local.descripcion &&
+          (remoto.Monto || remoto.monto) === local.monto &&
+          (remoto.Fecha || remoto.fecha) === local.fecha
+        );
+        if (!existe) {
+          gastosGuardados.push(local);
+        }
+      });
 
       let html = `
         <div class="space-y-4">
@@ -283,8 +296,15 @@ KeepModule('geld', () => {
           };
 
           try {
+            // Guardar localmente para renderizado inmediato
+            const prevLocales = JSON.parse(localStorage.getItem('geld_gastos_personales') || '[]');
+            prevLocales.push(nuevoGasto);
+            localStorage.setItem('geld_gastos_personales', JSON.stringify(prevLocales));
+
+            // Enviar a Apps Script omitiendo la restricción de CORS
             await fetch(APPS_SCRIPT_URL, {
               method: 'POST',
+              mode: 'no-cors',
               headers: { 'Content-Type': 'text/plain;charset=utf-8' },
               body: JSON.stringify({ action: 'guardarGasto', payload: nuevoGasto })
             });
