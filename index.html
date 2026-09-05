@@ -1,170 +1,92 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KeepAPP</title>
-  
-  <!-- CSS Principal -->
-  <link rel="stylesheet" href="keepapp.css">
-  
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- PapaParse para CSV -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-</head>
-<body>
+/**
+ * KeepAPP Router & Manager
+ */
+document.addEventListener('DOMContentLoaded', () => {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const btnMenu = document.getElementById('btn-menu');
+  const btnClose = document.getElementById('btn-close-sidebar');
+  const topbarTitle = document.getElementById('topbar-title');
 
-  <!-- NAVBAR SUPERIOR -->
-  <header class="app-header">
-    <button id="btn-menu" class="icon-btn" aria-label="Abrir menú">
-      <i class="fa-solid fa-bars"></i>
-    </button>
-    <h1 id="app-title">Compras</h1>
-  </header>
+  // Open / Close Sidebar
+  function openSidebar() {
+    sidebar.classList.remove('-translate-x-full');
+    overlay.classList.remove('hidden');
+    setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+  }
 
-  <!-- DRAWER / MENÚ LATERAL -->
-  <div id="drawer-overlay" class="drawer-overlay"></div>
-  <aside id="drawer" class="drawer">
-    <div class="drawer-header">
-      <h2>Menú</h2>
-    </div>
-    <nav class="drawer-nav">
-      <button class="nav-item active" onclick="switchSection('sec-compras', 'Compras')">
-        <i class="fa-solid fa-cart-shopping"></i> Compras
-      </button>
-      <button class="nav-item" onclick="switchSection('sec-tareas', 'Tareas')">
-        <i class="fa-solid fa-list-check"></i> Tareas
-      </button>
-      <button class="nav-item" onclick="switchSection('sec-bbm', 'BBM Training')">
-        <i class="fa-solid fa-dumbbell"></i> BBM
-      </button>
-      <button class="nav-item" onclick="switchSection('sec-estudio', 'Estudio')">
-        <i class="fa-solid fa-book"></i> Estudio
-      </button>
-      <button class="nav-item" onclick="switchSection('sec-metas', 'Metas')">
-        <i class="fa-solid fa-bullseye"></i> Metas
-      </button>
-    </nav>
-  </aside>
+  function closeSidebar() {
+    sidebar.classList.add('-translate-x-full');
+    overlay.classList.add('opacity-0');
+    setTimeout(() => overlay.classList.add('hidden'), 300);
+  }
 
-  <!-- CONTENIDO PRINCIPAL -->
-  <main class="main-container">
+  btnMenu.addEventListener('click', openSidebar);
+  btnClose.addEventListener('click', closeSidebar);
+  overlay.addEventListener('click', closeSidebar);
 
-    <!-- 1. COMPRAS -->
-    <section id="sec-compras" class="section-content active">
-      <div class="card">
-        <input type="text" id="compras-search" class="search-input" placeholder="Buscar artículo...">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <span class="stat-val" id="compras-stat-total">0</span>
-            <span class="stat-lbl">Total</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-val" id="compras-stat-agotar">0</span>
-            <span class="stat-lbl">Por Agotar</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-val" id="compras-stat-agotados">0</span>
-            <span class="stat-lbl">Agotados</span>
-          </div>
-        </div>
-        <div id="compras-list" class="data-list">Cargando datos de compras...</div>
-      </div>
-    </section>
+  // Navegación por secciones
+  const navBtns = document.querySelectorAll('.nav-btn');
+  const sections = document.querySelectorAll('.app-section');
 
-    <!-- 2. TAREAS -->
-    <section id="sec-tareas" class="section-content">
-      <div class="card">
-        <input type="text" id="tareas-search" class="search-input" placeholder="Buscar tarea...">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <span class="stat-val" id="tareas-stat-total">0</span>
-            <span class="stat-lbl">Total</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-val" id="tareas-stat-pendientes">0</span>
-            <span class="stat-lbl">Pendientes</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-val" id="tareas-stat-completadas">0</span>
-            <span class="stat-lbl">Completadas</span>
-          </div>
-        </div>
-        <div id="tareas-list" class="data-list">Cargando tareas...</div>
-      </div>
-    </section>
+  function navigateTo(sectionId) {
+    sections.forEach(sec => sec.classList.add('hidden'));
 
-    <!-- 3. BBM (ENTRENAMIENTO) -->
-    <section id="sec-bbm" class="section-content">
-      <div class="subnav-tabs">
-        <button class="tab-btn active" onclick="switchBBMTab('rutina')">Rutina</button>
-        <button class="tab-btn" onclick="switchBBMTab('records')">Récords</button>
-        <button class="tab-btn" onclick="switchBBMTab('medidas')">Medidas</button>
-      </div>
+    const targetSection = document.getElementById(`sec-${sectionId}`);
+    if (targetSection) {
+      targetSection.classList.remove('hidden');
+      const navBtn = document.querySelector(`[data-section="${sectionId}"]`);
+      if (navBtn) {
+        topbarTitle.textContent = navBtn.querySelector('span.flex-1').textContent;
+      }
+    }
+    closeSidebar();
+  }
 
-      <!-- Tab: Rutina -->
-      <div id="bbm-tab-rutina" class="bbm-tab-content active">
-        <div class="card">
-          <select id="bbm-day-select" class="select-input">
-            <option value="">Selecciona un día...</option>
-            <option value="Lunes">Lunes</option>
-            <option value="Martes">Martes</option>
-            <option value="Miércoles">Miércoles</option>
-            <option value="Jueves">Jueves</option>
-            <option value="Viernes">Viernes</option>
-            <option value="Sábado">Sábado</option>
-            <option value="Domingo">Domingo</option>
-          </select>
-          <div id="bbm-rutina-list" class="data-list">Selecciona un día para ver los ejercicios.</div>
-        </div>
-      </div>
+  navBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.getAttribute('data-section');
+      navigateTo(target);
+    });
+  });
 
-      <!-- Tab: Récords -->
-      <div id="bbm-tab-records" class="bbm-tab-content">
-        <div class="card">
-          <div id="bbm-records-list" class="data-list">Cargando récords...</div>
-        </div>
-      </div>
+  // Manejo de Tabs internas en subsecciones
+  document.addEventListener('click', (e) => {
+    const tabBtn = e.target.closest('.tab-btn');
+    if (!tabBtn) return;
 
-      <!-- Tab: Medidas -->
-      <div id="bbm-tab-medidas" class="bbm-tab-content">
-        <div class="card">
-          <div id="bbm-medidas-list" class="data-list">Cargando medidas...</div>
-        </div>
-      </div>
-    </section>
+    const targetTabId = tabBtn.getAttribute('data-tab');
+    const parentSection = tabBtn.closest('.app-section');
 
-    <!-- 4. ESTUDIO -->
-    <section id="sec-estudio" class="section-content">
-      <div class="card">
-        <!-- Contenedor de Pestañas dinámicas para UNA, UNEY, CURSOS -->
-        <div id="estudio-tabs-container" class="subnav-tabs"></div>
-        <input type="text" id="estudio-search" class="search-input" placeholder="Buscar materia o tema...">
-        <div id="estudio-list" class="data-list">Cargando plan de estudio...</div>
-      </div>
-    </section>
+    // Desactivar todos los botones de esa sección
+    parentSection.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.remove('bg-white', 'shadow-xs', 'text-gray-800');
+      b.classList.add('text-gray-500');
+    });
 
-    <!-- 5. METAS -->
-    <section id="sec-metas" class="section-content">
-      <div class="card">
-        <div id="goals-tabs-container" class="subnav-tabs"></div>
-        <div id="goals-list" class="data-list">Cargando metas...</div>
-      </div>
-    </section>
+    // Ocultar contenidos de esa sección
+    parentSection.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
 
-  </main>
+    // Activar botón y contenido seleccionado
+    tabBtn.classList.add('bg-white', 'shadow-xs', 'text-gray-800');
+    tabBtn.classList.remove('text-gray-500');
 
-  <!-- SCRIPTS JS DESDE LA CARPETA js/ -->
-  <script src="js/compras.js"></script>
-  <script src="js/tareas.js"></script>
-  <script src="js/bbm.js"></script>
-  <script src="js/estudio.js"></script>
-  <script src="js/goals.js"></script>
-  
-  <!-- SCRIPT PRINCIPAL EN LA RAÍZ -->
-  <script src="app.js"></script>
+    const targetContent = document.getElementById(targetTabId);
+    if (targetContent) targetContent.classList.remove('hidden');
+  });
 
-</body>
-</html>
+  // Sección inicial por defecto
+  navigateTo('tareas');
+});
+
+/**
+ * Helper global resiliente para que los módulos carguen sin tumbar la app
+ */
+window.KeepModule = function(moduleName, initFn) {
+  try {
+    initFn();
+    console.log(`[KeepAPP] Módulo '${moduleName}' inicializado con éxito.`);
+  } catch (err) {
+    console.error(`[KeepAPP Error] El módulo '${moduleName}' falló:`, err);
+  }
+};
