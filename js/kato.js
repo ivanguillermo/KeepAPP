@@ -1,13 +1,27 @@
 /**
- * js/kato.js - Módulo KATO: Registro de Idiomas (Duolingo, XP, Lecciones Diarias)
+ * js/kato.js - Módulo KATO: Registro e Historial de Idiomas desde Google Sheets
  */
 KeepModule('kato', () => {
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxJCaE7OMlQFdLAh7SUxNUM59mFKFkJ3c2R5EjV2JFW1rqVFSGGKXaH7jcTWFJiIc1/exec';
-  const IDIOMAS = ['Aleman', 'Frances', 'Japones', 'Latin'];
+  const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
+  const APPS_SCRIPT_URL = https://script.google.com/macros/s/AKfycbyxJCaE7OMlQFdLAh7SUxNUM59mFKFkJ3c2R5EjV2JFW1rqVFSGGKXaH7jcTWFJiIc1/exec';
+  const URL_KATO_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=kato`;
 
+  const IDIOMAS = ['Aleman', 'Frances', 'Japones', 'Latin'];
   let idiomaActual = 'Aleman';
 
-  // 1. Manejo del Reset Automático a las 12:00 AM
+  function fetchCSV(url) {
+    return new Promise((resolve, reject) => {
+      Papa.parse(url, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => resolve(results.data),
+        error: (err) => reject(err)
+      });
+    });
+  }
+
+  // Manejo del Reset a las 12:00 AM (Cuota Diaria)
   function getKatoStorage() {
     const todayStr = new Date().toISOString().slice(0, 10);
     let data = JSON.parse(localStorage.getItem('kato_data') || 'null');
@@ -17,7 +31,7 @@ KeepModule('kato', () => {
       IDIOMAS.forEach(lang => { data.daily[lang] = 0; data.monthly[lang] = 0; });
     }
 
-    // Si cambió el día (pasó de las 12:00 AM), reseteamos las cuotas diarias
+    // Reset automático a medianoche
     if (data.lastDate !== todayStr) {
       data.lastDate = todayStr;
       IDIOMAS.forEach(lang => { data.daily[lang] = 0; });
@@ -31,21 +45,37 @@ KeepModule('kato', () => {
     localStorage.setItem('kato_data', JSON.stringify(data));
   }
 
-  // 2. Renderizado de la Interfaz KATO
-  function setupKato(container) {
+  async function setupKato(container) {
     if (!container) return;
 
-    function renderView() {
+    async function renderView() {
+      container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Cargando datos de KATO...</p>`;
+
+      let registrosHoja = [];
+      try {
+        registrosHoja = await fetchCSV(URL_KATO_CSV);
+      } catch (e) {
+        console.warn("No se pudo leer la pestaña 'kato' en Google Sheets:", e);
+      }
+
+      // Obtener el último hito registrado en la hoja para el idioma seleccionado
+      const historialIdioma = registrosHoja.filter(r => 
+        (r.Idioma || r.idioma || '').toLowerCase() === idiomaActual.toLowerCase()
+      );
+      
+      const ultimoHito = historialIdioma.length > 0 ? historialIdioma[historialIdioma.length - 1] : null;
+      const currentXP = ultimoHito ? (ultimoHito.XP || ultimoHito.xp || '0') : '0';
+      const currentNivel = ultimoHito ? (ultimoHito.Nivel || ultimoHito.nivel || 'N/A') : 'Sin datos';
+
       const state = getKatoStorage();
       const dailyCount = state.daily[idiomaActual] || 0;
       const monthlyCount = state.monthly[idiomaActual] || 0;
 
-      // Select de Idiomas
       const optsIdiomas = IDIOMAS.map(lang => 
         `<option value="${lang}" ${lang === idiomaActual ? 'selected' : ''}>${lang}</option>`
       ).join('');
 
-      // Renderizado de las 5 casillas/cuota diaria
+      // Checkboxes cuota diaria
       let checkboxesHtml = '';
       for (let i = 1; i <= 5; i++) {
         const checked = i <= dailyCount ? 'checked' : '';
@@ -59,7 +89,7 @@ KeepModule('kato', () => {
 
       let html = `
         <div class="space-y-4">
-          <!-- Selección de Idioma -->
+          <!-- Menú Idioma -->
           <div class="bg-white p-3 rounded-2xl border border-indigo-100 shadow-xs flex items-center justify-between">
             <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Idioma:</span>
             <select id="select-kato-idioma" class="bg-indigo-50 text-indigo-800 text-xs font-bold py-1.5 px-3 rounded-xl border border-indigo-200 outline-none">
@@ -67,11 +97,23 @@ KeepModule('kato', () => {
             </select>
           </div>
 
-          <!-- Cuota Diaria (Reset 12:00 AM) -->
+          <!-- Estado Actual desde Google Sheets -->
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-indigo-50 border border-indigo-200 p-3 rounded-2xl">
+              <p class="text-[10px] font-bold text-indigo-600 uppercase">XP Actual (${idiomaActual})</p>
+              <p class="text-sm font-black text-indigo-900">${currentXP}</p>
+            </div>
+            <div class="bg-purple-50 border border-purple-200 p-3 rounded-2xl">
+              <p class="text-[10px] font-bold text-purple-600 uppercase">Nivel / Sección</p>
+              <p class="text-sm font-black text-purple-900">${currentNivel}</p>
+            </div>
+          </div>
+
+          <!-- Cuota Diaria (0-5) -->
           <div class="bg-white p-4 rounded-2xl border border-indigo-100 shadow-xs space-y-3">
             <div class="flex justify-between items-center">
               <p class="text-xs font-bold text-indigo-900 uppercase">Cuota Diaria (${dailyCount}/5)</p>
-              <span class="text-[10px] text-gray-400 font-semibold">Resetea a medianoche</span>
+              <span class="text-[10px] text-gray-400 font-semibold">Resetea a las 12:00 AM</span>
             </div>
             <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100">
               ${checkboxesHtml}
@@ -79,23 +121,23 @@ KeepModule('kato', () => {
             <p class="text-[11px] text-gray-500 text-right">Lecciones este mes: <strong class="text-indigo-600">${monthlyCount}</strong></p>
           </div>
 
-          <!-- Formulario de Hito (XP / Nivel a Google Sheets) -->
+          <!-- Guardar Nuevo Hito -->
           <form id="form-kato-hito" class="bg-white p-4 rounded-2xl border border-indigo-100 shadow-xs space-y-3">
-            <p class="text-xs font-bold text-indigo-900 uppercase border-b border-gray-100 pb-2">Registrar Hito / Avance</p>
+            <p class="text-xs font-bold text-indigo-900 uppercase border-b border-gray-100 pb-2">Actualizar Hito en Sheet</p>
             
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">XP Total</label>
-                <input type="number" id="kato-xp" required placeholder="Ej. 12500" class="w-full bg-gray-50 text-xs p-2 rounded-xl border border-gray-200 outline-none">
+                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Nuevo XP</label>
+                <input type="number" id="kato-xp" required placeholder="${currentXP}" class="w-full bg-gray-50 text-xs p-2 rounded-xl border border-gray-200 outline-none">
               </div>
               <div>
-                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Nivel / Sección</label>
-                <input type="text" id="kato-lvl" required placeholder="Ej. Secc 3 / Niv 12" class="w-full bg-gray-50 text-xs p-2 rounded-xl border border-gray-200 outline-none">
+                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Nuevo Nivel</label>
+                <input type="text" id="kato-lvl" required placeholder="${currentNivel}" class="w-full bg-gray-50 text-xs p-2 rounded-xl border border-gray-200 outline-none">
               </div>
             </div>
 
             <button type="submit" id="btn-guardar-kato" class="w-full bg-indigo-600 text-white text-xs font-bold py-2.5 rounded-xl shadow-xs hover:bg-indigo-700 transition-colors">
-              Guardar Hito en Sheet
+              Guardar en Google Sheets
             </button>
             <p id="kato-status" class="text-[11px] text-center hidden"></p>
           </form>
@@ -104,7 +146,7 @@ KeepModule('kato', () => {
 
       container.innerHTML = html;
 
-      // Eventos
+      // Evento Cambiar Idioma
       const selIdioma = container.querySelector('#select-kato-idioma');
       if (selIdioma) {
         selIdioma.addEventListener('change', (e) => {
@@ -113,7 +155,7 @@ KeepModule('kato', () => {
         });
       }
 
-      // Checkboxes de lecciones
+      // Evento Checkboxes
       const chks = container.querySelectorAll('.chk-leccion');
       chks.forEach(chk => {
         chk.addEventListener('change', () => {
@@ -130,7 +172,7 @@ KeepModule('kato', () => {
         });
       });
 
-      // Envío de Hito a Google Sheets
+      // Evento Formulario Hitos
       const formHito = container.querySelector('#form-kato-hito');
       const statusMsg = container.querySelector('#kato-status');
       const btnGuardar = container.querySelector('#btn-guardar-kato');
@@ -140,7 +182,7 @@ KeepModule('kato', () => {
           e.preventDefault();
           btnGuardar.disabled = true;
           statusMsg.className = "text-[11px] text-center text-indigo-600 block font-semibold";
-          statusMsg.textContent = "Guardando hito...";
+          statusMsg.textContent = "Enviando registro a Google Sheets...";
 
           const payload = {
             idioma: idiomaActual,
@@ -157,9 +199,8 @@ KeepModule('kato', () => {
               body: JSON.stringify({ action: 'guardarHitoKato', payload: payload })
             });
 
-            statusMsg.textContent = "¡Hito registrado exitosamente!";
-            btnGuardar.disabled = false;
-            formHito.reset();
+            statusMsg.textContent = "¡Guardado exitosamente!";
+            setTimeout(() => { renderView(); }, 1200);
           } catch (err) {
             statusMsg.className = "text-[11px] text-center text-red-500 block";
             statusMsg.textContent = "Error: " + err.message;
@@ -172,7 +213,6 @@ KeepModule('kato', () => {
     renderView();
   }
 
-  // Inicialización
   const cKato = document.getElementById('sec-kato');
   if (cKato) setupKato(cKato);
 });
