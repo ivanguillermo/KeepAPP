@@ -1,221 +1,309 @@
-/* ==========================================
-   MÓDULO: BBM (GYM & TRAINING) - KEEPAPP
-   Carga con PapaParse desde Google Sheets (CSV)
-   ========================================== */
-
-const BBMModule = (() => {
-  // ID de tu Google Sheet
+/**
+ * Módulo BBM (Body Building & Metrics) con PapaParse y Filtros Dinámicos
+ */
+KeepModule('bbm', () => {
   const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
-
-  // URLs de exportación CSV por pestaña
-  const CSV_URLS = {
-    rutinas: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=bbm_rutinas`,
-    records: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=bbm_records`,
-    medidas: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=bbm_medidas`
+  
+  // Nombres exactos de las pestañas de tu Google Sheet
+  const URLS = {
+    rutina: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=bbm_rutina`,
+    medidas: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=bbm_medidas`,
+    records: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=bbm_records`
   };
 
-  let bbmData = {
-    rutinas: {},
-    records: [],
-    medidas: []
-  };
-
-  let activeTab = 'rutinas';
-  let selectedDay = 'lunes';
-   document.getElementById('bbm-day-select')?.addEventListener('change', (e) => {
-  BBMModule.renderRutina(e.target.value);
-});
-  /* ------------------------------------------
-     1. INICIALIZACIÓN Y CARGA DE DATOS
-     ------------------------------------------ */
-  const init = () => {
-    setupEventListeners();
-    fetchAllSheets();
-  };
-
-  const setupEventListeners = () => {
-    // Cambio de pestañas (Rutinas, Récords, Medidas)
-    document.querySelectorAll('.bbm-tab-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const tabTarget = e.currentTarget.dataset.tab;
-        if (tabTarget) switchTab(tabTarget);
-      });
-    });
-
-    // Selector de día
-    const daySelect = document.getElementById('bbm-day-select');
-    if (daySelect) {
-      daySelect.addEventListener('change', (e) => {
-        selectedDay = e.target.value.toLowerCase();
-        renderRutinaDia();
-      });
-    }
-  };
-
-  const fetchAllSheets = () => {
-    if (typeof Papa === 'undefined') {
-      console.error('PapaParse no está cargado.');
-      return;
-    }
-
-    // Peticiones en paralelo con PapaParse
-    Promise.all([
-      parseCSV(CSV_URLS.rutinas),
-      parseCSV(CSV_URLS.records),
-      parseCSV(CSV_URLS.medidas)
-    ]).then(([rutinasRaw, recordsRaw, medidasRaw]) => {
-      bbmData.rutinas = processRutinas(rutinasRaw);
-      bbmData.records = recordsRaw;
-      bbmData.medidas = medidasRaw;
-      render();
-    }).catch(err => {
-      console.error('Error al parsear los datos con PapaParse:', err);
-    });
-  };
-
-  const parseCSV = (url) => {
+  // Carga remota con PapaParse
+  function fetchCSV(url) {
     return new Promise((resolve, reject) => {
       Papa.parse(url, {
         download: true,
         header: true,
         skipEmptyLines: true,
         complete: (results) => resolve(results.data),
-        error: (err) => reject(err)
+        error: (error) => reject(error)
       });
     });
-  };
+  }
 
-  // Agrupa las rutinas en un objeto según el día de la semana
-  const processRutinas = (data) => {
-    const agrupado = {};
-    data.forEach(item => {
-      const dia = (item.dia || item.Dia || '').toLowerCase().trim();
-      if (!dia) return;
+  // -------------------------------------------------------------
+  // 1. RUTINA (Selector de día, default el día actual)
+  // -------------------------------------------------------------
+  function setupRutina(data) {
+    const container = document.getElementById('bbm-rutina');
+    if (!container) return;
 
-      if (!agrupado[dia]) agrupado[dia] = [];
-      agrupado[dia].push({
-        nombre: item.ejercicio || item.nombre || '',
-        series: item.series || item.Series || '',
-        repeticiones: item.repeticiones || item.reps || '',
-        peso: item.peso || item.Peso || '',
-        descanso: item.descanso || '',
-        notas: item.notas || ''
+    const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const hoyIndice = new Date().getDay();
+    const diaHoyNombre = diasSemana[hoyIndice];
+
+    // Mapeo de días disponibles en los datos
+    const diasDisponibles = [...new Set(data.map(item => item.Dia || item.dia))].filter(Boolean);
+    
+    // Si hoy es domingo o no hay rutina para el día de hoy, seleccionar el primer día con datos por defecto
+    let diaSeleccionado = diasDisponibles.includes(diaHoyNombre) 
+      ? diaHoyNombre 
+      : (diasDisponibles[0] || 'Lunes');
+
+    function renderView() {
+      const ejerciciosDia = data.filter(item => (item.Dia || item.dia) === diaSeleccionado);
+
+      let optionsHTML = diasDisponibles.map(d => 
+        `<option value="${d}" ${d === diaSeleccionado ? 'selected' : ''}>${d}</option>`
+      ).join('');
+
+      let html = `
+        <div class="space-y-4">
+          <div class="flex items-center justify-between bg-white p-3 rounded-2xl border border-emerald-100 shadow-xs">
+            <label for="select-dia-rutina" class="text-xs font-bold text-gray-500 uppercase tracking-wider">Día:</label>
+            <select id="select-dia-rutina" class="bg-emerald-50 text-emerald-800 text-sm font-bold py-1.5 px-3 rounded-xl border border-emerald-200 outline-none focus:ring-2 focus:ring-emerald-400">
+              ${optionsHTML}
+            </select>
+          </div>
+
+          <div class="bg-white rounded-2xl p-4 shadow-xs border border-emerald-100">
+            <div class="flex items-center justify-between mb-3 border-b border-gray-100 pb-2">
+              <span class="font-bold text-emerald-800 text-sm tracking-wide uppercase">${diaSeleccionado}</span>
+              <span class="text-xs bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-semibold">${ejerciciosDia.length} ejercicios</span>
+            </div>
+            <div class="divide-y divide-gray-100">
+      `;
+
+      if (ejerciciosDia.length === 0) {
+        html += `<p class="text-xs text-gray-400 py-4 text-center">No hay ejercicios registrados para este día.</p>`;
+      } else {
+        ejerciciosDia.forEach(ej => {
+          const nombre = ej.Ejercicio || ej.ejercicio || '-';
+          const series = ej.Series || ej.series || '-';
+          const reps = ej.Repeticiones || ej.reps || ej.Repeticion || '-';
+          const notas = ej.Notas || ej.notas || '';
+
+          html += `
+            <div class="py-2.5 flex items-center justify-between gap-2">
+              <div class="flex-1">
+                <p class="font-semibold text-gray-800 text-sm">${nombre}</p>
+                ${notas ? `<p class="text-xs text-emerald-600 mt-0.5">💡 ${notas}</p>` : ''}
+              </div>
+              <div class="text-right whitespace-nowrap">
+                <span class="inline-block text-xs font-bold text-gray-700 bg-gray-100 px-2 py-1 rounded-lg">
+                  ${series} × ${reps}
+                </span>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      html += `
+            </div>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+
+      // Listener del select
+      document.getElementById('select-dia-rutina').addEventListener('change', (e) => {
+        diaSeleccionado = e.target.value;
+        renderView();
       });
-    });
-    return agrupado;
-  };
-
-  /* ------------------------------------------
-     2. PESTAÑAS Y VISTAS
-     ------------------------------------------ */
-  const switchTab = (tabName) => {
-    activeTab = tabName;
-
-    document.querySelectorAll('.bbm-tab-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.tab === tabName);
-    });
-
-    document.querySelectorAll('.bbm-subview').forEach(subview => {
-      subview.classList.toggle('active', subview.id === `bbm-subview-${tabName}`);
-    });
-
-    render();
-  };
-
-  /* ------------------------------------------
-     3. RENDERIZADO DE INTERFAZ
-     ------------------------------------------ */
-  const render = () => {
-    if (activeTab === 'rutinas') renderRutinaDia();
-    else if (activeTab === 'records') renderRecords();
-    else if (activeTab === 'medidas') renderMedidas();
-  };
-
-  const renderRutinaDia = () => {
-    const container = document.getElementById('bbm-rutina-list');
-    if (!container) return;
-
-    const ejercicios = bbmData.rutinas?.[selectedDay] || [];
-
-    if (ejercicios.length === 0) {
-      container.innerHTML = `
-        <div class="card" style="text-align: center; color: var(--text-dim);">
-          <p style="margin: 0;">No hay ejercicios para el <strong>${capitalize(selectedDay)}</strong>.</p>
-        </div>`;
-      return;
     }
 
-    container.innerHTML = ejercicios.map(ej => `
-      <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-          <h4 style="margin: 0; font-size: 0.95rem; color: var(--text);">${escapeHTML(ej.Ejercicio)}</h4>
-          <span class="badge" style="background: var(--pastel-bbm-bg); color: var(--pastel-bbm-accent); border: 1px solid var(--pastel-bbm-border);">
-            ${ej.series} x ${ej.repeticiones}
-          </span>
-        </div>
-        <div style="font-size: 0.8rem; color: var(--text-dim); display: flex; gap: 12px;">
-          <span><strong>Peso:</strong> ${ej.peso || 'N/A'}</span>
-          ${ej.descanso ? `<span><strong>Descanso:</strong> ${ej.descanso}</span>` : ''}
-        </div>
-        ${ej.notas ? `<p style="font-size: 0.75rem; color: var(--text-dim); margin: 6px 0 0 0; font-style: italic;">${escapeHTML(ej.notas)}</p>` : ''}
-      </div>
-    `).join('');
-  };
+    renderView();
+  }
 
-  const renderRecords = () => {
-    const container = document.getElementById('bbm-records-list');
+  // -------------------------------------------------------------
+  // 2. MEDIDAS (Filtro por Fecha o Parte del Cuerpo)
+  // -------------------------------------------------------------
+  function setupMedidas(data) {
+    const container = document.getElementById('bbm-medidas');
     if (!container) return;
 
-    const records = bbmData.records || [];
+    let modoFiltro = 'fecha'; // 'fecha' o 'parte'
+    const fechas = [...new Set(data.map(d => d.Fecha || d.fecha))].filter(Boolean);
+    const partes = [
+      { key: 'Peso_Kg', label: 'Peso (Kg)' },
+      { key: 'Brazo_Cm', label: 'Brazo (Cm)' },
+      { key: 'Pecho_Cm', label: 'Pecho (Cm)' },
+      { key: 'Cintura_Cm', label: 'Cintura (Cm)' },
+      { key: 'Muslo_Cm', label: 'Muslo (Cm)' },
+      { key: '%_Grasa', label: '% Grasa' }
+    ];
 
-    if (records.length === 0) {
-      container.innerHTML = `<p class="error-msg">No hay récords en la hoja bbm_records.</p>`;
-      return;
-    }
+    let fechaSeleccionada = fechas[fechas.length - 1] || '';
+    let parteSeleccionada = partes[0].key;
 
-    container.innerHTML = `
-      <div class="card">
-        ${records.map(rec => `
-          <div class="record-row">
-            <div>
-              <strong style="font-size: 0.9rem; color: var(--text);">${escapeHTML(rec.ejercicio || rec.Ejercicio)}</strong>
-              <span style="display: block; font-size: 0.7rem; color: var(--text-dim);">${rec.fecha || rec.Fecha || ''}</span>
+    function renderView() {
+      let selectorHTML = '';
+
+      if (modoFiltro === 'fecha') {
+        const opts = fechas.map(f => `<option value="${f}" ${f === fechaSeleccionada ? 'selected' : ''}>${f}</option>`).join('');
+        selectorHTML = `<select id="select-filtro-medida" class="bg-emerald-50 text-emerald-800 text-xs font-bold py-1.5 px-3 rounded-xl border border-emerald-200 outline-none">${opts}</select>`;
+      } else {
+        const opts = partes.map(p => `<option value="${p.key}" ${p.key === parteSeleccionada ? 'selected' : ''}>${p.label}</option>`).join('');
+        selectorHTML = `<select id="select-filtro-medida" class="bg-emerald-50 text-emerald-800 text-xs font-bold py-1.5 px-3 rounded-xl border border-emerald-200 outline-none">${opts}</select>`;
+      }
+
+      let html = `
+        <div class="space-y-4">
+          <div class="flex flex-col gap-2 bg-white p-3 rounded-2xl border border-emerald-100 shadow-xs">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+              <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Filtrar por:</span>
+              <div class="flex gap-1 bg-gray-100 p-1 rounded-xl text-xs font-bold">
+                <button id="btn-modo-fecha" class="px-2.5 py-1 rounded-lg ${modoFiltro === 'fecha' ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-500'}">Fecha</button>
+                <button id="btn-modo-parte" class="px-2.5 py-1 rounded-lg ${modoFiltro === 'parte' ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-500'}">Parte del cuerpo</button>
+              </div>
             </div>
-            <span style="font-size: 1rem; font-weight: 700; color: var(--pastel-bbm-accent);">${rec.record || rec.Record}</span>
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-xs font-semibold text-gray-600">Selección:</span>
+              ${selectorHTML}
+            </div>
           </div>
-        `).join('')}
-      </div>`;
-  };
+      `;
 
-  const renderMedidas = () => {
-    const container = document.getElementById('bbm-medidas-list');
-    if (!container) return;
+      if (modoFiltro === 'fecha') {
+        const registro = data.find(d => (d.Fecha || d.fecha) === fechaSeleccionada);
+        if (registro) {
+          html += `
+            <div class="bg-white rounded-2xl p-4 shadow-xs border border-emerald-100 space-y-3">
+              <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                <span class="text-xs font-bold text-gray-400">${registro.Fecha || registro.fecha}</span>
+                <div class="text-emerald-700 font-black text-base">${registro.Peso_Kg || registro.peso || '-'} <span class="text-xs font-medium">kg</span></div>
+              </div>
+              <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Brazo</span><span class="font-bold text-gray-800">${registro.Brazo_Cm || '-'} cm</span></div>
+                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Pecho</span><span class="font-bold text-gray-800">${registro.Pecho_Cm || '-'} cm</span></div>
+                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Cintura</span><span class="font-bold text-gray-800">${registro.Cintura_Cm || '-'} cm</span></div>
+                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Muslo</span><span class="font-bold text-gray-800">${registro.Muslo_Cm || '-'} cm</span></div>
+                <div class="bg-emerald-50/60 p-2 rounded-xl col-span-2"><span class="block text-gray-400 text-[10px] uppercase font-bold">% Grasa</span><span class="font-bold text-emerald-800">${registro['%_Grasa'] || '-'}%</span></div>
+              </div>
+            </div>
+          `;
+        }
+      } else {
+        const labelParte = partes.find(p => p.key === parteSeleccionada)?.label || parteSeleccionada;
+        html += `
+          <div class="bg-white rounded-2xl p-4 shadow-xs border border-emerald-100">
+            <h3 class="font-bold text-gray-800 text-sm mb-3 border-b border-gray-100 pb-2">${labelParte} - Histórico</h3>
+            <div class="space-y-2">
+        `;
+        
+        data.forEach(d => {
+          const val = d[parteSeleccionada] || '-';
+          const fecha = d.Fecha || d.fecha || '-';
+          html += `
+            <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+              <span class="text-xs text-gray-500 font-medium">${fecha}</span>
+              <span class="font-black text-sm text-emerald-800">${val}</span>
+            </div>
+          `;
+        });
 
-    const medidas = bbmData.medidas || [];
+        html += `</div></div>`;
+      }
 
-    if (medidas.length === 0) {
-      container.innerHTML = `<p class="error-msg">No hay medidas en la hoja bbm_medidas.</p>`;
-      return;
+      html += '</div>';
+      container.innerHTML = html;
+
+      // Listeners
+      document.getElementById('btn-modo-fecha').addEventListener('click', () => { modoFiltro = 'fecha'; renderView(); });
+      document.getElementById('btn-modo-parte').addEventListener('click', () => { modoFiltro = 'parte'; renderView(); });
+      
+      const sel = document.getElementById('select-filtro-medida');
+      if (sel) {
+        sel.addEventListener('change', (e) => {
+          if (modoFiltro === 'fecha') fechaSeleccionada = e.target.value;
+          else parteSeleccionada = e.target.value;
+          renderView();
+        });
+      }
     }
 
-    container.innerHTML = `
-      <div class="card">
-        ${medidas.map(m => `
-          <div class="medida-row">
-            <div>
-              <strong style="font-size: 0.9rem; color: var(--text);">${escapeHTML(m.parametro || m.Parametro)}</strong>
-              <span style="display: block; font-size: 0.7rem; color: var(--text-dim);">${m.fecha || m.Fecha || ''}</span>
-            </div>
-            <span style="font-weight: 600; color: var(--text);">${m.valor || m.Valor}</span>
+    renderView();
+  }
+
+  // -------------------------------------------------------------
+  // 3. RECORDS (Selector por Ejercicio -> 1RM, 3RM, 6RM, 10RM)
+  // -------------------------------------------------------------
+  function setupRecords(data) {
+    const container = document.getElementById('bbm-records');
+    if (!container) return;
+
+    // Obtener lista única de ejercicios
+    const ejercicios = [...new Set(data.map(d => d.Ejercicio || d.ejercicio))].filter(Boolean);
+    let ejercicioSeleccionado = ejercicios[0] || '';
+
+    function renderView() {
+      const opts = ejercicios.map(e => `<option value="${e}" ${e === ejercicioSeleccionado ? 'selected' : ''}>${e}</option>`).join('');
+
+      // Filtrar registros del ejercicio
+      const recsEjercicio = data.filter(d => (d.Ejercicio || d.ejercicio) === ejercicioSeleccionado);
+
+      // Metas de Repeticiones objetivo
+      const targets = ['1RM', '3RM', '6RM', '10RM'];
+
+      let html = `
+        <div class="space-y-4">
+          <div class="flex items-center justify-between bg-white p-3 rounded-2xl border border-emerald-100 shadow-xs">
+            <label for="select-ejercicio-record" class="text-xs font-bold text-gray-500 uppercase tracking-wider">Ejercicio:</label>
+            <select id="select-ejercicio-record" class="bg-emerald-50 text-emerald-800 text-xs font-bold py-1.5 px-3 rounded-xl border border-emerald-200 outline-none max-w-[200px]">
+              ${opts}
+            </select>
           </div>
-        `).join('')}
-      </div>`;
-  };
 
-  const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
-  const escapeHTML = (str) => str ? str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)) : '';
+          <div class="bg-white rounded-2xl p-4 shadow-xs border border-emerald-100">
+            <h3 class="font-bold text-gray-800 text-sm mb-3 border-b border-gray-100 pb-2">${ejercicioSeleccionado}</h3>
+            <div class="grid grid-cols-2 gap-2">
+      `;
 
-  return { init, switchTab, fetchAllSheets };
-})();
+      targets.forEach(target => {
+        const item = recsEjercicio.find(r => (r.Reps || r.reps || r.Repeticiones) === target);
+        const peso = item ? (item.Record || item.record || item.Peso || '-') : '-';
+        const fecha = item ? (item.Fecha || item.fecha || '') : '';
 
-window.BBMModule = BBMModule;
+        html += `
+          <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+            <div>
+              <span class="text-[10px] font-black tracking-wider text-emerald-600 block uppercase">${target}</span>
+              <span class="text-[9px] text-gray-400">${fecha}</span>
+            </div>
+            <span class="font-black text-sm text-gray-800">${peso} ${peso !== '-' ? '<span class="text-[10px] font-normal text-gray-500">kg</span>' : ''}</span>
+          </div>
+        `;
+      });
+
+      html += `
+            </div>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+
+      // Listener
+      document.getElementById('select-ejercicio-record').addEventListener('change', (e) => {
+        ejercicioSeleccionado = e.target.value;
+        renderView();
+      });
+    }
+
+    renderView();
+  }
+
+  // Inicialización de la app
+  async function initBBM() {
+    try {
+      const [rutinaData, medidasData, recordsData] = await Promise.all([
+        fetchCSV(URLS.rutina),
+        fetchCSV(URLS.medidas),
+        fetchCSV(URLS.records)
+      ]);
+
+      setupRutina(rutinaData);
+      setupMedidas(medidasData);
+      setupRecords(recordsData);
+    } catch (err) {
+      console.error('Error al descargar los CSVs:', err);
+    }
+  }
+
+  initBBM();
+});
