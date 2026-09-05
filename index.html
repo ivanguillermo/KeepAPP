@@ -261,5 +261,33 @@
   <script src="js/geld.js" onerror="console.warn('Fallo al cargar geld.js')"></script>
   <script src="js/links.js" onerror="console.warn('Fallo al cargar links.js')"></script>
   <script src="js/dox.js" onerror="console.warn('Fallo al cargar dox.js')"></script>
+
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js');
+  }
+
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    const banner = document.createElement('div');
+    banner.className = 'fixed bottom-4 left-4 right-4 bg-indigo-600 text-white p-3 rounded-2xl shadow-xl flex items-center justify-between z-50';
+    banner.innerHTML = `
+      <div class="flex items-center gap-2">
+        <img src="./keepApp_logo.png" class="w-8 h-8 rounded-lg">
+        <span class="text-xs font-bold">Instalar KeepAPP</span>
+      </div>
+      <button id="btn-pwa-install" class="bg-white text-indigo-600 text-xs font-bold px-3 py-1.5 rounded-xl">Instalar</button>
+    `;
+    document.body.appendChild(banner);
+
+    document.getElementById('btn-pwa-install').addEventListener('click', () => {
+      banner.remove();
+      deferredPrompt.prompt();
+    });
+  });
+</script>
 </body>
 </html>
