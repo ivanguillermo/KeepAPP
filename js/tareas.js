@@ -1,35 +1,53 @@
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXbq9KrCe60g4fPOd0lJ_sAuMuOfaY8_BoI95cGmY838nbDZLCA8MF2KU_GpNsf3lO/exec';
-const URL_TAREAS_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=tareas`;
+/**
+ * js/tareas.js - Módulo de Gestión de Tareas por Prioridad
+ */
+KeepModule('tareas', () => {
+  const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznDyGCaRoePoaDBJg-OFBC_Bt0f3DPQy8_TWFH9lJSaq02YYJeLUW9uh-NqbRQFiA/exec';
+  const URL_TAREAS_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=tareas`;
 
-let tareasGlobales = [];
+  let tareasGlobales = [];
 
-async function setupTareas(container) {
-  if (!container) return;
+  async function fetchCSV(url) {
+    const res = await fetch(url);
+    const csvText = await res.text();
+    return new Promise((resolve) => {
+      Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => resolve(results.data)
+      });
+    });
+  }
 
-  async function cargarYRenderizar() {
+  async function setupTareas() {
+    const container = document.getElementById('sec-tareas');
+    if (!container) return;
+
+    await cargarYRenderizar(container);
+  }
+
+  async function cargarYRenderizar(container) {
     container.innerHTML = `<p class="text-xs text-center text-gray-400 py-6">Cargando tareas...</p>`;
     try {
       const rawData = await fetchCSV(URL_TAREAS_CSV);
-      // Filtrar filas vacías o sin ID válido
       tareasGlobales = rawData.filter(t => t.ID && t.Tarea);
-      renderView();
+      renderView(container);
     } catch (err) {
       container.innerHTML = `<p class="text-xs text-center text-red-500 py-6">Error al cargar tareas: ${err.message}</p>`;
     }
   }
 
-  function renderView() {
+  function renderView(container) {
     const filtroUrgencia = document.getElementById('filtro-urgencia')?.value || 'TODOS';
     const filtroEstado = document.getElementById('filtro-estado')?.value || 'TODOS';
 
-    // Filtrar tareas según selecciones
     let tareasFiltradas = tareasGlobales.filter(t => {
       const matchUrgencia = filtroUrgencia === 'TODOS' || t.Urgencia === filtroUrgencia;
       const matchEstado = filtroEstado === 'TODOS' || t.Estado === filtroEstado;
       return matchUrgencia && matchEstado;
     });
 
-    // Ordenar: primero por estado (activas primero, completadas al fondo) y luego por PUNTAJE descendente
     tareasFiltradas.sort((a, b) => {
       const aListo = a.Estado === 'Listo' || a.Estado === 'Completada';
       const bListo = b.Estado === 'Listo' || b.Estado === 'Completada';
@@ -39,6 +57,11 @@ async function setupTareas(container) {
     });
 
     let html = `
+      <div class="border-l-4 border-amber-300 pl-3 mb-4">
+        <h2 class="text-xl font-bold text-gray-800">Tareas</h2>
+        <p class="text-xs text-gray-500">Prioridad por puntaje</p>
+      </div>
+
       <div class="space-y-4">
         <!-- Filtros -->
         <div class="flex gap-2 bg-white p-3 rounded-2xl border border-gray-100 shadow-xs">
@@ -78,17 +101,17 @@ async function setupTareas(container) {
               <div class="space-y-1">
                 <p class="text-xs font-bold text-gray-800 ${esCompletada ? 'line-through text-gray-400' : ''}">${t.Tarea}</p>
                 <div class="flex flex-wrap gap-1 text-[9px]">
-                  <span class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 font-bold">${t.Urgencia}</span>
-                  <span class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-bold">${t.Importancia}</span>
-                  <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-semibold">${t.Dificultad}</span>
-                  <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-semibold">${t.Tiempo}</span>
-                  <span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-semibold">${t.Costo}</span>
+                  ${t.Urgencia ? `<span class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 font-bold">${t.Urgencia}</span>` : ''}
+                  ${t.Importancia ? `<span class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-bold">${t.Importancia}</span>` : ''}
+                  ${t.Dificultad ? `<span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-semibold">${t.Dificultad}</span>` : ''}
+                  ${t.Tiempo ? `<span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-semibold">${t.Tiempo}</span>` : ''}
+                  ${t.Costo ? `<span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-semibold">${t.Costo}</span>` : ''}
                 </div>
               </div>
             </div>
             
             <div class="flex flex-col items-end gap-2">
-              <span class="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg">${t.PUNTAJE} pts</span>
+              <span class="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg">${t.PUNTAJE || 0} pts</span>
               <button data-id="${t.ID}" class="btn-eliminar text-[10px] text-red-400 hover:text-red-600 font-semibold transition-colors">
                 Eliminar
               </button>
@@ -101,22 +124,19 @@ async function setupTareas(container) {
     html += `</div></div>`;
     container.innerHTML = html;
 
-    // Listeners para filtros
-    container.querySelector('#filtro-urgencia').addEventListener('change', renderView);
-    container.querySelector('#filtro-estado').addEventListener('change', renderView);
+    // Listeners
+    container.querySelector('#filtro-urgencia').addEventListener('change', () => renderView(container));
+    container.querySelector('#filtro-estado').addEventListener('change', () => renderView(container));
 
-    // Listeners para marcar como listo
     container.querySelectorAll('.chk-completar').forEach(chk => {
       chk.addEventListener('change', async (e) => {
         const id = e.target.getAttribute('data-id');
         const nuevoEstado = e.target.checked ? 'Listo' : 'Por iniciar';
         
-        // Cambio local reactivo
         const t = tareasGlobales.find(item => item.ID === id);
         if (t) t.Estado = nuevoEstado;
-        renderView();
+        renderView(container);
 
-        // Petición remota
         await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -125,17 +145,14 @@ async function setupTareas(container) {
       });
     });
 
-    // Listeners para eliminar
     container.querySelectorAll('.btn-eliminar').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         const id = e.target.getAttribute('data-id');
-        if (!confirm(`¿Eliminar la tarea ${id} de Google Sheets?`)) return;
+        if (!confirm(`¿Eliminar la tarea de Google Sheets?`)) return;
 
-        // Eliminar local
         tareasGlobales = tareasGlobales.filter(item => item.ID !== id);
-        renderView();
+        renderView(container);
 
-        // Petición remota
         await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -145,5 +162,5 @@ async function setupTareas(container) {
     });
   }
 
-  cargarYRenderizar();
-}
+  setupTareas();
+});
