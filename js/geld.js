@@ -8,17 +8,27 @@ KeepModule('geld', () => {
   const URL_COMPRAS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=compras`;
   const URL_GASTOS_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=gastos`;
 
-  function fetchCSV(url) {
+async function fetchCSV(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+    const csvText = await response.text();
+    
     return new Promise((resolve, reject) => {
-      Papa.parse(url, {
-        download: true,
+      Papa.parse(csvText, {
         header: true,
         skipEmptyLines: true,
         complete: (results) => resolve(results.data),
         error: (err) => reject(err)
       });
     });
+  } catch (err) {
+    console.warn('Error al obtener CSV de Sheets:', err);
+    return []; // Retorna un array vacío para que la app no se rompa
   }
+}
 
   // -------------------------------------------------------------
   // 1. SUBSECCIÓN COMPRAS
