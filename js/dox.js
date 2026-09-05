@@ -1,6 +1,7 @@
 /**
  * dox.js - Subida de documentos e imágenes a Google Drive
  */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/TU_SCRIPT_ID_AQUI/exec';
 
 function initDox() {
   const container = document.getElementById('sec-dox');
@@ -51,60 +52,57 @@ function renderDoxLayout(container) {
 }
 
 async function subirDocumento() {
-  const tipo = document.getElementById('dox-tipo').value;
-  const nombre = document.getElementById('dox-nombre').value.trim();
-  const fileInput = document.getElementById('dox-file');
-  const statusDiv = document.getElementById('dox-status');
-  const btn = document.getElementById('btn-subir-dox');
+  const tipo = document.getElementById('dox-tipo').value; //[cite: 9]
+  const nombre = document.getElementById('dox-nombre').value.trim(); //[cite: 9]
+  const fileInput = document.getElementById('dox-file'); //[cite: 9]
+  const statusDiv = document.getElementById('dox-status'); //[cite: 9]
+  const btn = document.getElementById('btn-subir-dox'); //[cite: 9]
 
   if (!nombre || fileInput.files.length === 0) {
-    alert("Por favor ingresa un nombre y selecciona una imagen o archivo.");
+    alert("Por favor ingresa un nombre y selecciona una imagen o archivo."); //[cite: 9]
     return;
   }
 
-  const file = fileInput.files[0];
+  const file = fileInput.files[0]; //[cite: 9]
   
-  // Mostrar feedback de carga
-  statusDiv.classList.remove('hidden', 'text-red-500', 'text-emerald-600');
-  statusDiv.classList.add('text-indigo-600');
-  statusDiv.textContent = "Procesando y subiendo archivo...";
-  btn.disabled = true;
+  statusDiv.classList.remove('hidden', 'text-red-500', 'text-emerald-600'); //[cite: 9]
+  statusDiv.classList.add('text-indigo-600'); //[cite: 9]
+  statusDiv.textContent = "Procesando y subiendo archivo..."; //[cite: 9]
+  btn.disabled = true; //[cite: 9]
 
-  // Convertir archivo a Base64
-  const reader = new FileReader();
-  reader.readAsDataURL(file);
+  const reader = new FileReader(); //[cite: 9]
+  reader.readAsDataURL(file); //[cite: 9]
   
-  reader.onload = function () {
+  reader.onload = async function () {
     const payload = {
-      tipoDoc: tipo,
-      nombreDoc: nombre,
-      fileData: reader.result
+      tipoDoc: tipo, //[cite: 9]
+      nombreDoc: nombre, //[cite: 9]
+      fileData: reader.result //[cite: 9]
     };
 
-    // Llamada a Apps Script
-    if (typeof google !== 'undefined' && google.script && google.script.run) {
-      google.script.run
-        .withSuccessHandler(res => {
-          btn.disabled = false;
-          if (res.status === 'success') {
-            statusDiv.className = "text-xs text-center text-emerald-600 font-semibold";
-            statusDiv.innerHTML = `✓ Guardado con éxito. <a href="${res.fileUrl}" target="_blank" class="underline">Ver en Drive</a>`;
-            document.getElementById('dox-nombre').value = '';
-            fileInput.value = '';
-          } else {
-            statusDiv.className = "text-xs text-center text-red-500";
-            statusDiv.textContent = "Error: " + res.message;
-          }
-        })
-        .withFailureHandler(err => {
-          btn.disabled = false;
-          statusDiv.className = "text-xs text-center text-red-500";
-          statusDiv.textContent = "Error de conexión: " + err.message;
-        })
-        .guardarDocumentoDrive(payload);
-    } else {
-      btn.disabled = false;
-      statusDiv.textContent = "Entorno Google Apps Script no detectado.";
+    try {
+      const response = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'guardarDocumento', payload: payload })
+      });
+
+      const res = await response.json();
+      btn.disabled = false; //[cite: 9]
+
+      if (res.status === 'success') {
+        statusDiv.className = "text-xs text-center text-emerald-600 font-semibold"; //[cite: 9]
+        statusDiv.innerHTML = `✓ Guardado con éxito. <a href="${res.fileUrl}" target="_blank" class="underline">Ver en Drive</a>`; //[cite: 9]
+        document.getElementById('dox-nombre').value = ''; //[cite: 9]
+        fileInput.value = ''; //[cite: 9]
+      } else {
+        statusDiv.className = "text-xs text-center text-red-500"; //[cite: 9]
+        statusDiv.textContent = "Error: " + res.message; //[cite: 9]
+      }
+    } catch (err) {
+      btn.disabled = false; //[cite: 9]
+      statusDiv.className = "text-xs text-center text-red-500"; //[cite: 9]
+      statusDiv.textContent = "Error de conexión: " + err.message; //[cite: 9]
     }
   };
 }
