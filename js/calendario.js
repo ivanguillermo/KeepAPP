@@ -1,7 +1,7 @@
 /**
  * Módulo para Notas de Calendario y Eventos Online Clickeables
  */
-KeepModule('agenda', () => {
+KeepModule('calendario', () => {
   const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
   const URL_NOTAS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=notas_calendario`;
   const URL_EVENTOS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=eventos_online`;
