@@ -148,7 +148,7 @@ const BBMModule = (() => {
     container.innerHTML = ejercicios.map(ej => `
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-          <h4 style="margin: 0; font-size: 0.95rem; color: var(--text);">${escapeHTML(ej.nombre)}</h4>
+          <h4 style="margin: 0; font-size: 0.95rem; color: var(--text);">${escapeHTML(ej.Ejercicio)}</h4>
           <span class="badge" style="background: var(--pastel-bbm-bg); color: var(--pastel-bbm-accent); border: 1px solid var(--pastel-bbm-border);">
             ${ej.series} x ${ej.repeticiones}
           </span>
