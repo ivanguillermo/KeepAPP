@@ -27,7 +27,12 @@
               rose: '#FFE4E6',     // Geld
               orange: '#FFEDD5',   // Links
               slate: '#F1F5F9',    // Dox
-              emerald: '#D1FAE5'   // Bucher
+              emerald: '#D1FAE5',  // Bucher
+              indigo: '#E0E7FF',   // Kato
+              cyan: '#CFFAFE',     // SuperTag
+              amber: '#FEF3C7',    // Calendario
+              pink: '#FCE7F3',     // 1HThxI (Lisa)
+              violet: '#EDE9FE'    // Kinos
             }
           }
         }
@@ -85,6 +90,11 @@
         <span class="flex-1 text-left font-semibold">BBM</span>
       </button>
 
+      <button data-section="kato" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-indigo/60 transition-colors">
+        <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+        <span class="flex-1 text-left font-semibold">Kato</span>
+      </button>
+
       <button data-section="goals" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-purple/60 transition-colors">
         <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
         <span class="flex-1 text-left font-semibold">Goals</span>
@@ -104,6 +114,30 @@
       <button data-section="bucher" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-emerald/60 transition-colors">
         <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>
         <span class="flex-1 text-left font-semibold">Bucher</span>
+      </button>
+
+      <!-- Kinos (Películas) -->
+      <button data-section="kinos" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-violet/60 transition-colors">
+        <span class="w-2.5 h-2.5 rounded-full bg-violet-500"></span>
+        <span class="flex-1 text-left font-semibold">Kinos</span>
+      </button>
+
+      <!-- SuperTag -->
+      <button data-section="supertag" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-cyan/60 transition-colors">
+        <span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span>
+        <span class="flex-1 text-left font-semibold">SuperTag</span>
+      </button>
+
+      <!-- Calendario -->
+      <button data-section="calendario" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-amber/60 transition-colors">
+        <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+        <span class="flex-1 text-left font-semibold">Calendario</span>
+      </button>
+
+      <!-- 1HThxI (Lisa) -->
+      <button data-section="lisa" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-pink/60 transition-colors">
+        <span class="w-2.5 h-2.5 rounded-full bg-pink-500"></span>
+        <span class="flex-1 text-left font-semibold">1HThxI</span>
       </button>
 
       <button data-section="links" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-orange/60 transition-colors">
@@ -161,6 +195,17 @@
       </div>
       <div id="bbm-records" class="tab-content hidden">
         <div class="p-4 bg-pastel-green/40 rounded-2xl border border-emerald-100 text-sm text-gray-600">Marcas e indicadores...</div>
+      </div>
+    </section>
+
+    <!-- Sección: Kato (Idiomas) -->
+    <section id="sec-kato" class="app-section hidden space-y-4">
+      <div class="border-l-4 border-indigo-400 pl-3">
+        <h2 class="text-xl font-bold text-gray-800">Kato</h2>
+        <p class="text-xs text-gray-500">Registro de Idiomas y Duolingo</p>
+      </div>
+      <div class="p-4 bg-pastel-indigo/40 rounded-2xl border border-indigo-100 text-sm text-gray-600">
+        Cargando módulo Kato...
       </div>
     </section>
 
@@ -227,6 +272,50 @@
       </div>
     </section>
 
+    <!-- Sección: Kinos (Películas) -->
+    <section id="sec-kinos" class="app-section hidden space-y-4">
+      <div class="border-l-4 border-violet-400 pl-3">
+        <h2 class="text-xl font-bold text-gray-800">Kinos</h2>
+        <p class="text-xs text-gray-500">Cine y Películas</p>
+      </div>
+      <div class="p-4 bg-pastel-violet/40 rounded-2xl border border-violet-100 text-sm text-gray-600">
+        Próximamente: Kinos...
+      </div>
+    </section>
+
+    <!-- Sección: SuperTag -->
+    <section id="sec-supertag" class="app-section hidden space-y-4">
+      <div class="border-l-4 border-cyan-400 pl-3">
+        <h2 class="text-xl font-bold text-gray-800">SuperTag</h2>
+        <p class="text-xs text-gray-500">Etiquetado Avanzado</p>
+      </div>
+      <div class="p-4 bg-pastel-cyan/40 rounded-2xl border border-cyan-100 text-sm text-gray-600">
+        Próximamente: SuperTag...
+      </div>
+    </section>
+
+    <!-- Sección: Calendario -->
+    <section id="sec-calendario" class="app-section hidden space-y-4">
+      <div class="border-l-4 border-amber-400 pl-3">
+        <h2 class="text-xl font-bold text-gray-800">Calendario</h2>
+        <p class="text-xs text-gray-500">Agenda y Eventos</p>
+      </div>
+      <div class="p-4 bg-pastel-amber/40 rounded-2xl border border-amber-100 text-sm text-gray-600">
+        Próximamente: Calendario...
+      </div>
+    </section>
+
+    <!-- Sección: 1HThxI (Lisa) -->
+    <section id="sec-lisa" class="app-section hidden space-y-4">
+      <div class="border-l-4 border-pink-400 pl-3">
+        <h2 class="text-xl font-bold text-gray-800">1HThxI</h2>
+        <p class="text-xs text-gray-500">Listas y Notas Lisa</p>
+      </div>
+      <div class="p-4 bg-pastel-pink/40 rounded-2xl border border-pink-100 text-sm text-gray-600">
+        Próximamente: 1HThxI (Lisa)...
+      </div>
+    </section>
+
     <section id="sec-links" class="app-section hidden space-y-4">
       <div class="border-l-4 border-orange-300 pl-3">
         <h2 class="text-xl font-bold text-gray-800">Links</h2>
@@ -249,13 +338,19 @@
 
   </main>
 
+  <!-- Scripts Módulos -->
   <script src="js/app.js"></script>
   <script src="js/benkyou.js" onerror="console.warn('Fallo al cargar benkyou.js')"></script>
   <script src="js/bbm.js" onerror="console.warn('Fallo al cargar bbm.js')"></script>
+  <script src="js/kato.js" onerror="console.warn('Fallo al cargar kato.js')"></script>
   <script src="js/goals.js" onerror="console.warn('Fallo al cargar goals.js')"></script>
   <script src="js/tareas.js" onerror="console.warn('Fallo al cargar tareas.js')"></script>
   <script src="js/geld.js" onerror="console.warn('Fallo al cargar geld.js')"></script>
   <script src="js/bucher.js" onerror="console.warn('Fallo al cargar bucher.js')"></script>
+  <script src="js/kinos.js" onerror="console.warn('Fallo al cargar kinos.js')"></script>
+  <script src="js/supertag.js" onerror="console.warn('Fallo al cargar supertag.js')"></script>
+  <script src="js/calendario.js" onerror="console.warn('Fallo al cargar calendario.js')"></script>
+  <script src="js/lisa.js" onerror="console.warn('Fallo al cargar lisa.js')"></script>
   <script src="js/links.js" onerror="console.warn('Fallo al cargar links.js')"></script>
   <script src="js/dox.js" onerror="console.warn('Fallo al cargar dox.js')"></script>
 </body>
