@@ -19,7 +19,9 @@ const ASSETS_TO_CACHE = [
   './js/goals.js',
   './js/tareas.js',
   './js/bucher.js',
-  './js/kato.js',
+  './js/supertags.js',
+  './js/kinos.js',
+  './js/calendario.js',
   'https://cdn.tailwindcss.com'
 ];
 
