@@ -1,7 +1,7 @@
 /**
  * dox.js - Subida de documentos e imágenes a Google Drive
  */
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/TU_SCRIPT_ID_AQUI/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwdrmo3kWL6qDL_Tx3PfNv6INJL9_SBGXITmK-L_f8ZHtudzgpTcxjyCyDQxogxb6r4/exec';
 
 function initDox() {
   const container = document.getElementById('sec-dox');
