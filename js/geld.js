@@ -30,8 +30,7 @@ KeepModule('geld', () => {
         categoria: d['Categoria'] || 'Otros',
         unidad: d['Unidad'] || '',
         precioUsd: d['Precio_USD'] || '0',
-        precioVes: d['Precio_VES'] || '0',
-        estado: d['Estado'] || ''
+        precioVes: d['Precio_VES'] || '0'
       }))
       .filter(p => p.producto.trim() !== '');
 
@@ -94,13 +93,12 @@ KeepModule('geld', () => {
   function setupLibroDiario(data, container) {
     if (!container) return;
 
-    // Resumen superior (líneas 1 a 3 del sheet)
     let saldoBanco = '0';
     let deudaCashea = '0';
 
     data.forEach(row => {
-      const desc = row['Descripción'] || Object.values(row)[1] || '';
-      const monto = row['Cuenta'] || Object.values(row)[2] || '0';
+      const desc = String(row['Descripción'] || Object.values(row)[1] || '');
+      const monto = String(row['Cuenta'] || Object.values(row)[2] || '0');
       if (desc.includes('Saldo Banco')) saldoBanco = monto;
       if (desc.includes('Deuda Cashea')) deudaCashea = monto;
     });
@@ -177,7 +175,7 @@ KeepModule('geld', () => {
 
             <div>
               <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Descripción</label>
-              <input type="text" id="gasto-desc" required placeholder="Ej. Almuerzo, Harina, etc." class="w-full bg-gray-50 text-xs p-2 rounded-xl border border-gray-200 outline-none">
+              <input type="text" id="gasto-desc" required placeholder="Ej. Almuerzo, Harina" class="w-full bg-gray-50 text-xs p-2 rounded-xl border border-gray-200 outline-none">
             </div>
 
             <div class="grid grid-cols-2 gap-2">
@@ -217,7 +215,7 @@ KeepModule('geld', () => {
       if (gastosGuardados.length === 0) {
         html += `<p class="text-xs text-gray-400 py-4 text-center">No hay gastos guardados aún.</p>`;
       } else {
-        gastosGuardados.forEach((g, idx) => {
+        gastosGuardados.forEach(g => {
           html += `
             <div class="p-2.5 bg-gray-50 rounded-xl border border-gray-100 flex justify-between items-center text-xs">
               <div>
@@ -273,12 +271,13 @@ KeepModule('geld', () => {
   }
 
   // -------------------------------------------------------------
-  // INICIALIZACIÓN GENERAL DEL MÓDULO GELD
+  // INICIALIZACIÓN
   // -------------------------------------------------------------
   async function initGeld() {
-    const cCompras = document.getElementById('geld-compras') || document.querySelector('[data-tab="compras"]');
-    const cLibro = document.getElementById('geld-libro') || document.querySelector('[data-tab="libro_diario"]') || document.querySelector('#geld-libro-diario');
-    const cGastos = document.getElementById('geld-gastos') || document.querySelector('[data-tab="gastos"]');
+    // Selectores híbridos para enganchar según ID o posición de la subsección
+    const cCompras = document.getElementById('geld-compras') || document.querySelector('[data-tab="compras"]') || document.querySelectorAll('#geld-view > div')[1];
+    const cLibro = document.getElementById('geld-libro') || document.querySelector('[data-tab="libro_diario"]') || document.querySelectorAll('#geld-view > div')[0];
+    const cGastos = document.getElementById('geld-gastos') || document.querySelector('[data-tab="gastos"]') || document.querySelectorAll('#geld-view > div')[2];
 
     if (cGastos) setupGastos(cGastos);
 
