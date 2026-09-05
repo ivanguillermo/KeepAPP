@@ -1,0 +1,17 @@
+{
+  "short_name": "KeepAPP",
+  "name": "KeepAPP - Personal Workspace",
+  "icons": [
+    {
+      "src": "./keepApp_logo.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "display": "standalone",
+  "orientation": "portrait"
+}
