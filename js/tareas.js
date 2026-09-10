@@ -3,7 +3,7 @@
  */
 KeepModule('tareas', () => {
   const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyJtZLRWn2hXiQFkEiyA6ioU0iOmUUs8Ab3afduHH6pwQEjGSpru6Aol-L6MGQTLPpn/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhznKTkADQbwFdjBSy1Ie3ELkk4rXN0sugS2ON08gjkSHITdGqojTJd_VOt6cz5FtU/exec';
   const URL_TAREAS_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=tareas`;
 
   let tareasGlobales = [];
@@ -124,10 +124,11 @@ KeepModule('tareas', () => {
     html += `</div></div>`;
     container.innerHTML = html;
 
-    // Listeners
+    // Listeners para cambio de filtros
     container.querySelector('#filtro-urgencia').addEventListener('change', () => renderView(container));
     container.querySelector('#filtro-estado').addEventListener('change', () => renderView(container));
 
+    // Listeners para actualizar estado
     container.querySelectorAll('.chk-completar').forEach(chk => {
       chk.addEventListener('change', async (e) => {
         const id = e.target.getAttribute('data-id');
@@ -135,29 +136,47 @@ KeepModule('tareas', () => {
         
         const t = tareasGlobales.find(item => item.ID === id);
         if (t) t.Estado = nuevoEstado;
+
         renderView(container);
 
-        await fetch(APPS_SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'actualizarEstadoTarea', payload: { id, estado: nuevoEstado } })
-        });
+        try {
+          await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'actualizarEstadoTarea',
+              payload: { id, estado: nuevoEstado }
+            })
+          });
+        } catch (err) {
+          console.error('Error al actualizar estado:', err);
+        }
       });
     });
 
+    // Listeners para eliminar tarea
     container.querySelectorAll('.btn-eliminar').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         const id = e.target.getAttribute('data-id');
-        if (!confirm(`¿Eliminar la tarea de Google Sheets?`)) return;
+        if (!confirm('¿Seguro que deseas eliminar esta tarea?')) return;
 
         tareasGlobales = tareasGlobales.filter(item => item.ID !== id);
         renderView(container);
 
-        await fetch(APPS_SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'eliminarTarea', payload: { id } })
-        });
+        try {
+          await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'eliminarTarea',
+              payload: { id }
+            })
+          });
+        } catch (err) {
+          console.error('Error al eliminar tarea:', err);
+        }
       });
     });
   }
