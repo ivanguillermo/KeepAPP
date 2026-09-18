@@ -1,7 +1,7 @@
 /**
  * dox.js - Subida, visualización, descarga e impresión de documentos desde Google Drive
  */
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEgC4ydIzOnqyD2yaNyupOXcC-z3TUfno0OpYZz_giDVHbQ1qmtdBmxevge4f2pKm0/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyN0YEYoQmgOewBkVKIswjzCuCFSIQZ_1Ncc5FU8H_TQKwDww6G-K7ic6Zb6mFtzEfi/exec';
 
 function initDox() {
   const container = document.getElementById('sec-dox');
@@ -140,7 +140,7 @@ async function subirDocumento() {
       const response = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'guardarDocumento', payload: payload })
+        body: JSON.stringify({ action: 'guardarDocumentoDrive', payload: payload })
       });
 
       const res = await response.json();
