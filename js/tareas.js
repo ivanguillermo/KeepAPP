@@ -1,7 +1,7 @@
 // tareas.js
 
 // Reemplaza esta URL con la URL del despliegue de tu Google Apps Script si no la tienes global
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzOUx8P3Fc1c89B1QiHBQot1f0NahjUSWQ1HuTIwQVbe9ElHZLB2NOEUge8B5-4hhHv/exec'; 
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSTN8mlYiQbzNDnDNoJJs_hbsh14TYvcCBW5CkEwFrf-Fr8HrQRrqjMkfs1vDye8o9/exec'; 
 
 let tareasGlobales = [];
 
