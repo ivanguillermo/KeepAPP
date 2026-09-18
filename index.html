@@ -318,12 +318,21 @@
     </section>
 
     <section id="sec-links" class="app-section hidden space-y-4">
-      <div class="border-l-4 border-orange-300 pl-3">
-        <h2 class="text-xl font-bold text-gray-800">Links</h2>
-        <p class="text-xs text-gray-500">Accesos Directos</p>
+      <div class="border-l-4 border-orange-300 pl-3 flex justify-between items-center">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Links</h2>
+          <p class="text-xs text-gray-500">Accesos Directos</p>
+        </div>
+        <button id="btn-refresh-links" class="p-2 text-orange-500 hover:bg-orange-50 rounded-xl transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+        </button>
       </div>
-      <div class="p-4 bg-pastel-orange/40 rounded-2xl border border-orange-100 text-sm text-gray-600">
-        Enlaces guardados...
+
+      <!-- Contenedor estilo Apps / Iconos de Teléfono -->
+      <div id="contenedor-links" class="grid grid-cols-3 sm:grid-cols-4 gap-4 pt-2">
+        <div class="col-span-full p-4 text-center text-sm text-gray-400">Cargando enlaces...</div>
       </div>
     </section>
 
