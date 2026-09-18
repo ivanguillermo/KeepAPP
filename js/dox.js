@@ -1,7 +1,7 @@
 /**
  * dox.js - Subida, visualización, descarga e impresión de documentos desde Google Drive
  */
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwLzgESw0kG2zdZbkLBbpFdGNOFoNPIC2JpkUkKGfbi43L29q0MESmVL1vV5htM6YOd/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEgC4ydIzOnqyD2yaNyupOXcC-z3TUfno0OpYZz_giDVHbQ1qmtdBmxevge4f2pKm0/exec';
 
 function initDox() {
   const container = document.getElementById('sec-dox');
