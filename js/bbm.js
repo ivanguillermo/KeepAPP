@@ -124,6 +124,11 @@ KeepModule('bbm', () => {
       { key: 'Brazo_Cm', label: 'Brazo (Cm)' },
       { key: 'Pecho_Cm', label: 'Pecho (Cm)' },
       { key: 'Cintura_Cm', label: 'Cintura (Cm)' },
+      { key: 'Muslo', label: 'Muslo (Cm)' },
+      { key: 'Muslo_Cm', label: 'Muslo (Cm)' },
+      { key: 'Muslo_Cm', label: 'Muslo (Cm)' },
+      { key: 'Subescapular', label: 'Subescapular)' },
+      { key: 'Pierna', label: 'Pierna (Cm)' },
       { key: 'Muslo_Cm', label: 'Muslo (Cm)' },
       { key: '%_Grasa', label: '% Grasa' }
     ];
