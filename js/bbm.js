@@ -127,7 +127,7 @@ KeepModule('bbm', () => {
       { key: 'Abdominal', label: 'Abdominal (%)' },
       { key: 'Muslo', label: 'Muslo (Cm)' },
       { key: 'Pierna', label: 'Pierna (Cm)' },
-      { key: 'Cuello', label: 'Cuello)' },
+      { key: 'Cuello', label: 'Cuello (Cm)' },
       { key: 'Cintura', label: 'Cintura (Cm)' },
       { key: 'Abdomen', label: 'Abdomen (Cm)' },
       { key: 'ICC', label: 'ICC' },
@@ -196,10 +196,10 @@ KeepModule('bbm', () => {
                 <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Brazo Izq</span><span class="font-bold text-gray-800">${registro.Brazo_Izq || '-'} cm</span></div>
                 <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Brazo Der Contr</span><span class="font-bold text-gray-800">${registro.Brazo_Der_Contr || '-'} cm</span></div>
                 <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Brazo Izq Contr</span><span class="font-bold text-gray-800">${registro.Brazo_Izq_Contr || '-'} cm</span></div>
-                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Brazo Der</span><span class="font-bold text-gray-800">${registro.Brazo_Der || '-'} cm</span></div>                
-                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Brazo Izq</span><span class="font-bold text-gray-800">${registro.Brazo_Izq || '-'} cm</span></div>
-                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Brazo Der Contr</span><span class="font-bold text-gray-800">${registro.Brazo_Der_Contr || '-'} cm</span></div>
-                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Brazo Izq Contr</span><span class="font-bold text-gray-800">${registro.Brazo_Izq_Contr || '-'} cm</span></div>
+                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Pecho</span><span class="font-bold text-gray-800">${registro.Pecho_Cm || '-'} cm</span></div>                
+                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Muslo Sup Der</span><span class="font-bold text-gray-800">${registro.Muslo_Sup_Der || '-'} cm</span></div>
+                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Muslo Sup Izq Contr</span><span class="font-bold text-gray-800">${registro.Muslo_Sup_Izq || '-'} cm</span></div>
+                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Muslo Med Der</span><span class="font-bold text-gray-800">${registro.Muslo_Med_Der || '-'} cm</span></div>
                 <div class="bg-emerald-50/60 p-2 rounded-xl col-span-2"><span class="block text-gray-400 text-[10px] uppercase font-bold">% Grasa</span><span class="font-bold text-emerald-800">${registro['%_Grasa'] || '-'}%</span></div>
               </div>
             </div>
