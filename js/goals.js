@@ -127,10 +127,10 @@ KeepModule('goals', () => {
 
     // Detectar nombres de las columnas que son meses
     const headers = data.length > 0 ? Object.keys(data[0]) : [];
-    const columnasMeses = ['Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'].filter(m => headers.includes(m));
+    const columnasMeses = ['Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre', 'Wilkommen Proj'].filter(m => headers.includes(m));
 
     // Mapeo del mes actual en español
-    const listaMesesEsp = ['Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const listaMesesEsp = ['Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre', 'Wilkommen Proj'];
     const mesActualNombre = listaMesesEsp[new Date().getMonth()];
 
     let mesSeleccionado = columnasMeses.includes(mesActualNombre) 
