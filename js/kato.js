@@ -203,14 +203,18 @@ KeepModule('kato', () => {
           statusMsg.className = "text-[11px] text-center text-indigo-600 block font-semibold";
           statusMsg.textContent = "Enviando registro a Google Sheets...";
 
-          const payloadData = {
-            action: 'guardarHitoKato',
-            idioma: idiomaActual,
-            xp: contentWrapper.querySelector('#kato-xp').value,
-            nivel: contentWrapper.querySelector('#kato-lvl').value,
-            dailyCount: getKatoStorage().daily[idiomaActual] || 0,
-            dateStr: new Date().toLocaleDateString('es-VE')
-          };
+          // Obtener fecha actual en formato "16 Sep"
+            const hoy = new Date();
+            const fechaFormateada = hoy.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+            
+            const payloadData = {
+              action: 'guardarHitoKato',
+              idioma: idiomaActual,
+              xp: contentWrapper.querySelector('#kato-xp').value,
+              nivel: contentWrapper.querySelector('#kato-lvl').value,
+              dailyCount: getKatoStorage().daily[idiomaActual] || 0,
+              dateStr: fechaFormateada // Envía "22 sept" o similar
+            };
 
           try {
             // Envío con CORS habilitado (solicitando y procesando la respuesta JSON)
