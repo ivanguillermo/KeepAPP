@@ -175,6 +175,15 @@ KeepModule('bbm', () => {
               </div>
               <div class="grid grid-cols-3 gap-2 text-center text-xs">
                 <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Brazo</span><span class="font-bold text-gray-800">${registro.Brazo_Cm || '-'} cm</span></div>
+                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Brazo</span><span class="font-bold text-gray-800">${registro.Subescapular || '-'} cm</span></div>
+                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Brazo</span><span class="font-bold text-gray-800">${registro.Pierna || '-'} cm</span></div>
+                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Brazo</span><span class="font-bold text-gray-800">${registro.Abdominal || '-'} cm</span></div>
+                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Brazo</span><span class="font-bold text-gray-800">${registro.Brazo_Cm || '-'} cm</span></div>
+                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Brazo</span><span class="font-bold text-gray-800">${registro.Brazo_Cm || '-'} cm</span></div>
+                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Brazo</span><span class="font-bold text-gray-800">${registro.Brazo_Cm || '-'} cm</span></div>
+                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Brazo</span><span class="font-bold text-gray-800">${registro.Brazo_Cm || '-'} cm</span></div>
+                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Brazo</span><span class="font-bold text-gray-800">${registro.Brazo_Cm || '-'} cm</span></div>
+                <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Brazo</span><span class="font-bold text-gray-800">${registro.Brazo_Cm || '-'} cm</span></div>                
                 <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Pecho</span><span class="font-bold text-gray-800">${registro.Pecho_Cm || '-'} cm</span></div>
                 <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Cintura</span><span class="font-bold text-gray-800">${registro.Cintura_Cm || '-'} cm</span></div>
                 <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Muslo</span><span class="font-bold text-gray-800">${registro.Muslo_Cm || '-'} cm</span></div>
