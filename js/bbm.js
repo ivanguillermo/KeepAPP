@@ -178,7 +178,7 @@ KeepModule('bbm', () => {
                 <span class="text-xs font-bold text-gray-400">${registro.Fecha || registro.fecha}</span>
                 <div class="text-emerald-700 font-black text-base">${registro.Peso_Kg || registro.peso || '-'} <span class="text-xs font-medium">kg</span></div>
               </div>
-              <div class="grid grid-cols-5 gap-3 text-center text-xs">
+              <div class="grid grid-cols-4 gap-3 text-center text-xs">
                 <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Tricep</span><span class="font-bold text-gray-800">${registro.Tricep || '-'} %</span></div>
                 <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Subescapular</span><span class="font-bold text-gray-800">${registro.Subescapular || '-'} %</span></div>
                 <div class="bg-emerald-50/60 p-2 rounded-xl"><span class="block text-gray-400 text-[10px] uppercase font-bold">Suprailiaco</span><span class="font-bold text-gray-800">${registro.Suprailiaco || '-'} %</span></div>
