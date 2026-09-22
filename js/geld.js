@@ -1,12 +1,16 @@
 /**
- * js/geld.js - Módulo Geld: Compras con actualización de precios, Gastos directos al Sheet con eliminación, y Gastos Futuros.
+ * js/geld.js - Módulo Geld: Compras, Resumen, Gastos y Gastos Futuros.
+ * Lectura vía CSV directo de Sheets (evita problemas de CORS/doGet) y Escritura vía POST.
  */
 KeepModule('geld', () => {
   const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxcwn5HibkzJxfF-jN946v5r5P8tQkeDpRfKhe1r9bMCPxtssYxrGwicogEYyxg9uPy/exec';
 
   const URL_COMPRAS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=compras`;
+  const URL_GASTOS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=gastos`;
+  const URL_GASTOS_FUTUROS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=gastos_futuros`;
 
+  // Función genérica para leer CSVs de Google Sheets
   async function fetchCSV(url) {
     try {
       const response = await fetch(url);
@@ -27,7 +31,7 @@ KeepModule('geld', () => {
     }
   }
 
-  // Helper para llamadas POST a Apps Script sin problemas de CORS
+  // Helper para llamadas POST a Apps Script
   async function postToAppsScript(payload) {
     return fetch(APPS_SCRIPT_URL, {
       method: 'POST',
@@ -37,20 +41,32 @@ KeepModule('geld', () => {
     });
   }
 
+  // Normalizar nombres de claves del CSV para evitar fallos por mayúsculas o espacios
+  function normalizarObjeto(obj) {
+    const res = {};
+    Object.keys(obj).forEach(k => {
+      res[k.trim().toLowerCase()] = obj[k];
+    });
+    return res;
+  }
+
   // -------------------------------------------------------------
-  // 1. SUBSECCIÓN COMPRAS (Edición de precio_USD)
+  // 1. SUBSECCIÓN COMPRAS
   // -------------------------------------------------------------
   function setupCompras(data, container) {
     if (!container) return;
 
     const productos = data
-      .map(d => ({
-        producto: d['Producto'] || '',
-        categoria: d['Categoria'] || 'Otros',
-        unidad: d['Unidad'] || '',
-        precioUsd: d['Precio_USD'] || '0',
-        precioVes: d['Precio_VES'] || '0'
-      }))
+      .map(d => {
+        const item = normalizarObjeto(d);
+        return {
+          producto: item['producto'] || '',
+          categoria: item['categoria'] || 'Otros',
+          unidad: item['unidad'] || '',
+          precioUsd: item['precio_usd'] || '0',
+          precioVes: item['precio_ves'] || '0'
+        };
+      })
       .filter(p => p.producto.trim() !== '');
 
     const categorias = ['Todas', ...new Set(productos.map(p => p.categoria).filter(Boolean))];
@@ -73,11 +89,11 @@ KeepModule('geld', () => {
       `;
 
       if (filtrados.length === 0) {
-        html += `<p class="text-xs text-gray-400 py-4 text-center">No hay productos en esta categoría.</p>`;
+        html += `<p class="text-xs text-gray-400 py-4 text-center">No hay productos registrados.</p>`;
       } else {
         filtrados.forEach((item, idx) => {
           html += `
-            <div class="py-2.5 flex items-center justify-between gap-2" data-item-idx="${idx}">
+            <div class="py-2.5 flex items-center justify-between gap-2">
               <div class="min-w-0 flex-1">
                 <p class="text-xs font-semibold text-gray-800 truncate">${item.producto}</p>
                 <p class="text-[10px] text-gray-400">${item.unidad ? item.unidad + ' • ' : ''}${item.categoria}</p>
@@ -108,7 +124,6 @@ KeepModule('geld', () => {
         });
       }
 
-      // Evento para editar precio
       container.querySelectorAll('.btn-editar-precio').forEach(btn => {
         btn.addEventListener('click', async () => {
           const prodName = btn.getAttribute('data-producto');
@@ -124,9 +139,10 @@ KeepModule('geld', () => {
               categoria: catName,
               precio_usd: parseFloat(nuevoPrecio)
             });
-            alert('Precio actualizado en la hoja de Compras');
-            const dataRefresh = await fetchCSV(URL_COMPRAS);
-            setupCompras(dataRefresh, container);
+            setTimeout(async () => {
+              const dataRefresh = await fetchCSV(URL_COMPRAS);
+              setupCompras(dataRefresh, container);
+            }, 1000);
           }
         });
       });
@@ -141,28 +157,26 @@ KeepModule('geld', () => {
   async function setupResumen(container) {
     if (!container) return;
 
-    container.innerHTML = `<p class="text-xs text-gray-400 p-4 text-center">Calculando resumen de gastos desde Google Sheets...</p>`;
+    container.innerHTML = `<p class="text-xs text-gray-400 p-4 text-center">Calculando resumen de gastos...</p>`;
     
-    let gastos = [];
-    try {
-      const res = await fetch(`${APPS_SCRIPT_URL}?action=obtenerGastos`);
-      const data = await res.json();
-      if (data.status === 'success') gastos = data.gastos;
-    } catch (e) {
-      console.warn("Error cargando resumen:", e);
-    }
+    const rawData = await fetchCSV(URL_GASTOS);
+    const gastos = rawData.map(d => {
+      const item = normalizarObjeto(d);
+      return {
+        monto: parseFloat(item['monto']) || 0,
+        categoria: item['categoria'] || 'Otro'
+      };
+    });
 
     if (gastos.length === 0) {
       container.innerHTML = `<p class="text-xs text-gray-400 p-4 text-center">No hay gastos registrados para generar el resumen.</p>`;
       return;
     }
 
-    const totalGastado = gastos.reduce((sum, g) => sum + (isNaN(g.monto) ? 0 : g.monto), 0);
+    const totalGastado = gastos.reduce((sum, g) => sum + g.monto, 0);
     const porCategoria = {};
     gastos.forEach(g => {
-      const cat = g.categoria || 'Otros';
-      const m = isNaN(g.monto) ? 0 : g.monto;
-      porCategoria[cat] = (porCategoria[cat] || 0) + m;
+      porCategoria[g.categoria] = (porCategoria[g.categoria] || 0) + g.monto;
     });
 
     const categoriasOrdenadas = Object.keys(porCategoria).sort((a, b) => porCategoria[b] - porCategoria[a]);
@@ -209,22 +223,27 @@ KeepModule('geld', () => {
   }
 
   // -------------------------------------------------------------
-  // 3. SUBSECCIÓN GASTOS (Lectura directa + Eliminación)
+  // 3. SUBSECCIÓN GASTOS (Lectura CSV Directa)
   // -------------------------------------------------------------
   function setupGastos(container) {
     if (!container) return;
 
     async function renderView() {
-      container.innerHTML = `<p class="text-xs text-gray-400 p-4 text-center">Cargando gastos desde Google Sheets...</p>`;
+      container.innerHTML = `<p class="text-xs text-gray-400 p-4 text-center">Cargando gastos registrados...</p>`;
       
-      let gastos = [];
-      try {
-        const res = await fetch(`${APPS_SCRIPT_URL}?action=obtenerGastos`);
-        const json = await res.json();
-        if (json.status === 'success') gastos = json.gastos;
-      } catch (err) {
-        console.warn("Error leyendo gastos:", err);
-      }
+      const rawGastos = await fetchCSV(URL_GASTOS);
+      const gastos = rawGastos.map(d => {
+        const item = normalizarObjeto(d);
+        return {
+          id: item['id'] || '',
+          fecha: item['fecha'] || '',
+          descripcion: item['descripcion'] || '',
+          categoria: item['categoria'] || 'Otro',
+          monto: parseFloat(item['monto']) || 0,
+          lugar: item['lugar'] || '',
+          metodo: item['metodo'] || ''
+        };
+      }).filter(g => g.descripcion !== '' || g.id !== '');
 
       let html = `
         <div class="space-y-4">
@@ -262,7 +281,7 @@ KeepModule('geld', () => {
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Lugar</label>
-                <input type="text" id="gasto-lugar" placeholder="Ej. Chinos Pol, Farmatodo" class="w-full bg-gray-50 text-xs p-2 rounded-xl border border-gray-200 outline-none">
+                <input type="text" id="gasto-lugar" placeholder="Ej. Farmatodo" class="w-full bg-gray-50 text-xs p-2 rounded-xl border border-gray-200 outline-none">
               </div>
               <div>
                 <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Método de Pago</label>
@@ -288,7 +307,7 @@ KeepModule('geld', () => {
       `;
 
       if (gastos.length === 0) {
-        html += `<p class="text-xs text-gray-400 py-4 text-center">No hay gastos en el Sheet.</p>`;
+        html += `<p class="text-xs text-gray-400 py-4 text-center">No hay gastos en la hoja.</p>`;
       } else {
         gastos.slice().reverse().forEach(g => {
           html += `
@@ -302,7 +321,7 @@ KeepModule('geld', () => {
                 <p class="text-[10px] text-gray-400 mt-0.5">${g.fecha} • ${g.lugar} • ${g.metodo}</p>
               </div>
               <div class="flex items-center gap-2 shrink-0">
-                <p class="font-black text-rose-600">${g.monto.toFixed(0)}</p>
+                <p class="font-black text-rose-600">$${g.monto.toFixed(2)}</p>
                 <button class="btn-borrar-gasto text-red-400 hover:text-red-600 text-xs font-bold p-1" data-id="${g.id}">✕</button>
               </div>
             </div>
@@ -338,7 +357,7 @@ KeepModule('geld', () => {
         formGasto.addEventListener('submit', async (e) => {
           e.preventDefault();
 
-          gastoStatus.textContent = "Guardando en Google Sheets...";
+          gastoStatus.textContent = "Guardando...";
           gastoStatus.className = "text-[11px] text-center text-amber-600 font-bold block";
 
           const nuevoGasto = {
@@ -368,7 +387,7 @@ KeepModule('geld', () => {
           if (confirm(`¿Seguro que deseas eliminar el gasto ${gastoId}?`)) {
             btn.textContent = '...';
             await postToAppsScript({ action: 'eliminarGasto', id: gastoId });
-            renderView();
+            setTimeout(() => renderView(), 1000);
           }
         });
       });
@@ -378,7 +397,7 @@ KeepModule('geld', () => {
   }
 
   // -------------------------------------------------------------
-  // 4. SUBSECCIÓN GASTOS FUTUROS
+  // 4. SUBSECCIÓN GASTOS FUTUROS (Lectura CSV Directa)
   // -------------------------------------------------------------
   function setupGastosFuturos(container) {
     if (!container) return;
@@ -386,14 +405,18 @@ KeepModule('geld', () => {
     async function renderView() {
       container.innerHTML = `<p class="text-xs text-gray-400 p-4 text-center">Cargando gastos futuros...</p>`;
 
-      let listaFuturos = [];
-      try {
-        const res = await fetch(`${APPS_SCRIPT_URL}?action=obtenerGastosFuturos`);
-        const json = await res.json();
-        if (json.status === 'success') listaFuturos = json.gastos_futuros;
-      } catch (err) {
-        console.warn("Error leyendo gastos futuros:", err);
-      }
+      const rawFuturos = await fetchCSV(URL_GASTOS_FUTUROS);
+      const listaFuturos = rawFuturos.map(d => {
+        const item = normalizarObjeto(d);
+        return {
+          id: item['id'] || '',
+          gasto: item['gasto'] || '',
+          categoria: item['categoria'] || 'Otro',
+          valor: parseFloat(item['valor']) || 0,
+          fecha_tope: item['fecha_tope'] || '',
+          estado: item['estado'] || 'no pago'
+        };
+      }).filter(f => f.gasto !== '' || f.id !== '');
 
       let html = `
         <div class="space-y-4">
@@ -439,7 +462,7 @@ KeepModule('geld', () => {
         html += `<p class="text-xs text-gray-400 py-4 text-center">No hay gastos futuros pendientes.</p>`;
       } else {
         listaFuturos.forEach(item => {
-          const esPago = item.estado.toLowerCase() === 'pago';
+          const esPago = item.estado.toLowerCase().trim() === 'pago';
           html += `
             <div class="p-2.5 ${esPago ? 'bg-emerald-50 border-emerald-100 opacity-60' : 'bg-gray-50 border-gray-100'} rounded-xl border flex justify-between items-center text-xs gap-2">
               <div class="min-w-0 flex-1">
@@ -451,7 +474,7 @@ KeepModule('geld', () => {
                 <p class="text-[10px] text-gray-400 mt-0.5">Fecha tope: ${item.fecha_tope || 'N/A'}</p>
               </div>
               <div class="text-right shrink-0 flex items-center gap-2">
-                <span class="font-black text-rose-700">$${item.valor}</span>
+                <span class="font-black text-rose-700">$${item.valor.toFixed(2)}</span>
                 <button class="btn-toggle-estado-futuro px-2 py-1 rounded-lg text-[10px] font-bold ${esPago ? 'bg-emerald-200 text-emerald-800' : 'bg-amber-100 text-amber-800'}"
                         data-id="${item.id}" data-estado="${item.estado}">
                   ${esPago ? 'PAGO' : 'PENDIENTE'}
@@ -498,7 +521,7 @@ KeepModule('geld', () => {
           };
 
           await postToAppsScript(nuevoFuturo);
-          renderView();
+          setTimeout(() => renderView(), 1000);
         });
       }
 
@@ -507,7 +530,7 @@ KeepModule('geld', () => {
         btn.addEventListener('click', async () => {
           const itemID = btn.getAttribute('data-id');
           const estadoActual = btn.getAttribute('data-estado');
-          const nuevoEstado = estadoActual.toLowerCase() === 'pago' ? 'no pago' : 'pago';
+          const nuevoEstado = estadoActual.toLowerCase().trim() === 'pago' ? 'no pago' : 'pago';
 
           btn.textContent = '...';
           await postToAppsScript({
@@ -515,7 +538,7 @@ KeepModule('geld', () => {
             id: itemID,
             estado: nuevoEstado
           });
-          renderView();
+          setTimeout(() => renderView(), 1000);
         });
       });
     }
@@ -539,11 +562,17 @@ KeepModule('geld', () => {
 
     if (elGastos) setupGastos(elGastos);
 
-    // Eventos al cambiar entre pestañas
     const tabResumenBtn = document.querySelector('[data-tab="geld-resumen"]');
     if (tabResumenBtn) {
       tabResumenBtn.addEventListener('click', () => {
         if (elResumen) setupResumen(elResumen);
+      });
+    }
+
+    const tabGastosBtn = document.querySelector('[data-tab="geld-gastos"]');
+    if (tabGastosBtn) {
+      tabGastosBtn.addEventListener('click', () => {
+        if (elGastos) setupGastos(elGastos);
       });
     }
 
