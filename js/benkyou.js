@@ -3,8 +3,8 @@
  */
 KeepModule('benkyou', () => {
   const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
-  const URL_BKY = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=BKY`;
-  const URL_Eva = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=evaluaciones`;
+  const URL_BKY = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=evaluaciones`;
+ 
 
   function fetchCSV(url) {
     return new Promise((resolve, reject) => {
@@ -227,8 +227,8 @@ KeepModule('benkyou', () => {
 
     try {
       const dataBKY = await fetchCSV(URL_BKY);
-      const dataEva = await fetchCSV(URL_Eva);
-      if (cEvals) setupEvaluaciones(dataEva, cEvals);
+    
+      if (cEvals) setupEvaluaciones(dataBKY, cEvals);
       if (cExplorador) setupExploradorMaterias(dataBKY, cExplorador);
     } catch (e) {
       console.error('Error al cargar datos de Benkyou:', e);
