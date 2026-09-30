@@ -34,26 +34,28 @@ KeepModule('benkyou', () => {
   // -------------------------------------------------------------
   // 1. EVALUACIONES PRÓXIMAS (Ordenadas por cercanía)
   // -------------------------------------------------------------
-  function setupEvaluaciones(data, container) {
-    if (!container) return;
+ function setupEvaluaciones(data, container) {
+  if (!container) return;
 
-    const hoy = new Date();
-    hoy.setHours(0,0,0,0);
+  const hoy = new Date();
+  hoy.setHours(0,0,0,0);
 
-    const evals = data
-      .map(d => {
-        const fechaObj = parseFecha(d['Evaluacion']);
-        return {
-          universidad: d['Universidad'] || '',
-          materia: d['Materia'] || '',
-          objetivo: d['Objetivo'] || '',
-          temas: d['Temas'] || '',
-          fechaStr: d['Evaluacion'] || '',
-          fechaObj: fechaObj
-        };
-      })
-      .filter(e => e.materia && e.fechaObj)
-      .sort((a, b) => a.fechaObj - b.fechaObj);
+  const evals = data
+    .map(d => {
+      // Cambiar d['Evaluacion'] por d['fechaObj']
+      const fechaObj = parseFecha(d['fechaObj']); 
+      return {
+        universidad: d['Universidad'] || '',
+        materia: d['Materia'] || '',
+        objetivo: d['Objetivo'] || '',
+        evaluacion: d['Evaluacion'] || '', // Tipo de evaluación (TSP1, Examen, etc.)
+        temas: d['Temas'] || '',
+        fechaStr: d['fechaObj'] || '',     // Cadena de texto de la fecha
+        fechaObj: fechaObj
+      };
+    })
+    .filter(e => e.materia && e.fechaObj)
+    .sort((a, b) => a.fechaObj - b.fechaObj);
 
     let html = `
       <div class="space-y-3">
