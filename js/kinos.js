@@ -201,13 +201,21 @@ KeepModule('kinos', () => {
         // Enviar evento al backend
         fetch(APPS_SCRIPT_URL, {
           method: 'POST',
-          mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
             action: 'moverPeliculaAMes',
             payload: { titulo: peliculaSeleccionada, mes: mesElegido }
           })
-        }).catch(err => console.error('Error enviando película:', err));
+        })
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === 'success') {
+            console.log('Guardado exitoso en Google Sheets:', res.message);
+          } else {
+            console.error('Error del servidor:', res.message);
+          }
+        })
+        .catch(err => console.error('Error en la petición:', err));
       });
     }
 
