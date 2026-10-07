@@ -3,7 +3,7 @@
  */
 KeepModule('kato', () => {
   const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCuvR3oQyqHG5hq8UKkjnPc2MAKDTshQoUKHlUKcfeC43WG0kIOmO6QnlhBIt4aKaD/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxOjE3Jq5rmOkkeZ67aSUQfeTuaVF3y6G8QTAl1M8_EckB86Ql36ZZ-eZLn6mZFzjRo/exec';
   const URL_KATO_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=kato`;
 
   const IDIOMAS = ['Aleman', 'Frances', 'Japones', 'Latin'];
