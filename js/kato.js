@@ -3,7 +3,7 @@
  */
 KeepModule('kato', () => {
   const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxOjE3Jq5rmOkkeZ67aSUQfeTuaVF3y6G8QTAl1M8_EckB86Ql36ZZ-eZLn6mZFzjRo/exec';
+  const API = window.KEEP_BACKEND_URL; // backend seguro (definido en auth.js)
   const URL_KATO_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=kato`;
 
   const IDIOMAS = ['Aleman', 'Frances', 'Japones', 'Latin'];
@@ -21,29 +21,19 @@ KeepModule('kato', () => {
     });
   }
 
-  // Manejo del Reset a las 12:00 AM usando hora local (Evita desfase UTC)
-  function getKatoStorage() {
-    // 'sv-SE' garantiza el formato ISO local YYYY-MM-DD sin alterar la zona horaria
-    const todayStr = new Date().toLocaleDateString('sv-SE');
-    let data = JSON.parse(localStorage.getItem('kato_data') || 'null');
+  // La cuota diaria vive en el Sheet (hoja kato_cuota): laptop y teléfono ven lo mismo.
+  // El servidor decide "hoy" con su zona horaria, así que el reset de las 12:00 AM es igual en todos.
+  let cuota = { daily: {}, monthly: {} };
+  let registrosHoja = [];
 
-    if (!data) {
-      data = { lastDate: todayStr, daily: {}, monthly: {} };
-      IDIOMAS.forEach(lang => { data.daily[lang] = 0; data.monthly[lang] = 0; });
+  async function cargarCuota() {
+    try {
+      const r = await fetch(API + '?action=obtenerKatoCuota');
+      const j = await r.json();
+      if (j.status === 'success') cuota = { daily: j.daily, monthly: j.monthly };
+    } catch (e) {
+      console.warn('No se pudo leer la cuota de Kato:', e);
     }
-
-    // Reset automático a las 12:00 AM hora local
-    if (data.lastDate !== todayStr) {
-      data.lastDate = todayStr;
-      IDIOMAS.forEach(lang => { data.daily[lang] = 0; });
-      localStorage.setItem('kato_data', JSON.stringify(data));
-    }
-
-    return data;
-  }
-
-  function saveKatoStorage(data) {
-    localStorage.setItem('kato_data', JSON.stringify(data));
   }
 
   async function setupKato(container) {
@@ -63,14 +53,15 @@ KeepModule('kato', () => {
       }
     }
 
-    async function renderView() {
-      contentWrapper.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Cargando datos de KATO...</p>`;
-
-      let registrosHoja = [];
-      try {
-        registrosHoja = await fetchCSV(URL_KATO_CSV);
-      } catch (e) {
-        console.warn("No se pudo leer la pestaña 'kato' en Google Sheets:", e);
+    async function renderView(usarCache) {
+      if (!usarCache) {
+        contentWrapper.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Cargando datos de KATO...</p>`;
+        try {
+          registrosHoja = await fetchCSV(URL_KATO_CSV);
+        } catch (e) {
+          console.warn("No se pudo leer la pestaña 'kato' en Google Sheets:", e);
+        }
+        await cargarCuota();
       }
 
       // Obtener el último hito registrado en la hoja para el idioma seleccionado
@@ -82,7 +73,7 @@ KeepModule('kato', () => {
       const currentXP = ultimoHito ? (ultimoHito.XP || ultimoHito.xp || '0') : '0';
       const currentNivel = ultimoHito ? (ultimoHito.Nivel || ultimoHito.nivel || 'N/A') : 'Sin datos';
 
-      const state = getKatoStorage();
+      const state = cuota;
       const dailyCount = state.daily[idiomaActual] || 0;
       const monthlyCount = state.monthly[idiomaActual] || 0;
 
@@ -173,21 +164,32 @@ KeepModule('kato', () => {
       // Evento Checkboxes (Selección directa basada en la casilla pulsada)
       const chks = contentWrapper.querySelectorAll('.chk-leccion');
       chks.forEach(chk => {
-        chk.addEventListener('change', (e) => {
+        chk.addEventListener('change', async (e) => {
           const index = parseInt(e.target.dataset.index, 10);
-          const isChecked = e.target.checked;
-          const stateNow = getKatoStorage();
-          
-          // Si marca la casilla N, la cuota sube a N. Si desmarca N, la cuota baja a N - 1.
-          const newCount = isChecked ? index : index - 1;
-          const oldCount = stateNow.daily[idiomaActual] || 0;
-          const diff = newCount - oldCount;
+          const newCount = e.target.checked ? index : index - 1; // marcar N => cuota N; desmarcar N => N-1
+          const idioma = idiomaActual;
+          const oldCount = cuota.daily[idioma] || 0;
 
-          stateNow.daily[idiomaActual] = newCount;
-          stateNow.monthly[idiomaActual] = Math.max(0, (stateNow.monthly[idiomaActual] || 0) + diff);
-          
-          saveKatoStorage(stateNow);
-          renderView();
+          // Se ve al instante...
+          cuota.daily[idioma] = newCount;
+          cuota.monthly[idioma] = Math.max(0, (cuota.monthly[idioma] || 0) + (newCount - oldCount));
+          renderView(true);
+
+          // ...y se guarda en el Sheet (valor absoluto: no se descuadra entre dispositivos)
+          try {
+            const res = await fetch(API, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify({ action: 'guardarKatoCuota', idioma: idioma, count: newCount })
+            });
+            const j = await res.json();
+            if (j.status !== 'success') throw new Error(j.message || 'Error del servidor');
+          } catch (err) {
+            console.error('No se guardó la cuota:', err);
+            await cargarCuota();   // vuelve al valor real
+            renderView(true);
+            alert('No se pudo guardar en el Sheet: ' + err.message);
+          }
         });
       });
 
@@ -203,22 +205,18 @@ KeepModule('kato', () => {
           statusMsg.className = "text-[11px] text-center text-indigo-600 block font-semibold";
           statusMsg.textContent = "Enviando registro a Google Sheets...";
 
-          // Obtener fecha actual en formato "16 Sep"
-            const hoy = new Date();
-            const fechaFormateada = hoy.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
-            
-            const payloadData = {
-              action: 'guardarHitoKato',
-              idioma: idiomaActual,
-              xp: contentWrapper.querySelector('#kato-xp').value,
-              nivel: contentWrapper.querySelector('#kato-lvl').value,
-              dailyCount: getKatoStorage().daily[idiomaActual] || 0,
-              dateStr: fechaFormateada // Envía "22 sept" o similar
-            };
+          const payloadData = {
+            action: 'guardarHitoKato',
+            idioma: idiomaActual,
+            xp: contentWrapper.querySelector('#kato-xp').value,
+            nivel: contentWrapper.querySelector('#kato-lvl').value,
+            dailyCount: cuota.daily[idiomaActual] || 0,
+            dateStr: new Date().toLocaleDateString('es-VE')
+          };
 
           try {
             // Envío con CORS habilitado (solicitando y procesando la respuesta JSON)
-            const res = await fetch(APPS_SCRIPT_URL, {
+            const res = await fetch(API, {
               method: 'POST',
               headers: { 'Content-Type': 'text/plain;charset=utf-8' },
               body: JSON.stringify(payloadData)
