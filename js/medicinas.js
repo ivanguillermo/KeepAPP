@@ -7,7 +7,7 @@ window.KeepModule('medicinas', () => {
   const btnNuevaMedicina = document.getElementById('btn-nueva-medicina');
 
   // URL del Web App de Google Apps Script (Asegúrate de enlazar la tuya o usar la variable global si la tienes)
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxW_zUcLqRIyQg0bZNQqV_yY2uZBIK2l48L5Mt4qy_BU7x4TVZnkMvHaya4bEXzK2CS/exec'; 
+  const SCRIPT_URL = window.KEEP_BACKEND_URL; 
 
   async function cargarMedicinas() {
     try {
