@@ -1,7 +1,7 @@
 (function () {
   const CLIENT_ID = "529390183847-jbcnnpkof69dagpe3lti8tj3k6s9jfji.apps.googleusercontent.com";
   // Despliegue de Apps Script que incluye seguridad.gs (acción leerHoja)
-  const BACKEND_URL = "https://script.google.com/macros/s/AKfycbwUXXQqSEcT28nkP4Z00EyaS3P4IHFBYQ6EqOthv5rqR1CZEGrj9Q_Q4mk-iwkI9zQp/exec";
+  const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxW_zUcLqRIyQg0bZNQqV_yY2uZBIK2l48L5Mt4qy_BU7x4TVZnkMvHaya4bEXzK2CS/exec";
   window.KEEP_BACKEND_URL = BACKEND_URL; // los módulos la usan para hablar con el backend seguro
   const GVIZ = /docs\.google\.com\/spreadsheets\/d\/[^/]+\/gviz\/tq\?.*?sheet=([^&]+)/;
 
