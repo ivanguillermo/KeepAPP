@@ -3,7 +3,7 @@
  */
 KeepModule('supertags', () => {
   const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzOUx8P3Fc1c89B1QiHBQot1f0NahjUSWQ1HuTIwQVbe9ElHZLB2NOEUge8B5-4hhHv/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyWKtIWZwNizUdny_IM37QoPLaCdwh3OeRtEXXgCid76tTuejEXbUts7k14ms583WCr/exec';
 
   const URL_RUTINAS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=rutinas_tags`;
   const URL_HISTORIAL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=historial_tags`;
