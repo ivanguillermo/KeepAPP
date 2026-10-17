@@ -2,7 +2,7 @@
  * sw.js - Service Worker para KeepAPP
  */
 
-const CACHE_NAME = 'keepapp-v2';
+const CACHE_NAME = 'keepapp-v3';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -11,6 +11,7 @@ const ASSETS_TO_CACHE = [
   './keepApp_logo.png',
   './css/styles.css',
   './js/app.js',
+  './js/auth.js',
   './js/bbm.js',
   './js/benkyou.js',
   './js/dox.js',
@@ -21,7 +22,7 @@ const ASSETS_TO_CACHE = [
   './js/bucher.js',
   './js/supertags.js',
   './js/kinos.js',
-  './js/calendario.js',
+  './js/agenda.js',
   'https://cdn.tailwindcss.com'
 ];
 
