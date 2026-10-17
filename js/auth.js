@@ -1,11 +1,8 @@
-/**
- * js/auth.js — Login con Google + token en cada petición + lectura del Sheet vía backend (Sheet PRIVADO)
- * Debe cargarse ANTES de app.js y de los módulos. Los módulos no necesitan cambios.
- */
 (function () {
   const CLIENT_ID = "529390183847-jbcnnpkof69dagpe3lti8tj3k6s9jfji.apps.googleusercontent.com";
   // Despliegue de Apps Script que incluye seguridad.gs (acción leerHoja)
-  const BACKEND_URL = "https://script.google.com/macros/s/AKfycbyWKtIWZwNizUdny_IM37QoPLaCdwh3OeRtEXXgCid76tTuejEXbUts7k14ms583WCr/exec";
+  const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxOjE3Jq5rmOkkeZ67aSUQfeTuaVF3y6G8QTAl1M8_EckB86Ql36ZZ-eZLn6mZFzjRo/exec";
+  window.KEEP_BACKEND_URL = BACKEND_URL; // los módulos la usan para hablar con el backend seguro
   const GVIZ = /docs\.google\.com\/spreadsheets\/d\/[^/]+\/gviz\/tq\?.*?sheet=([^&]+)/;
 
   const fetchOriginal = window.fetch.bind(window);
