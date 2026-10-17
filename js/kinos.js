@@ -3,7 +3,7 @@
  */
 KeepModule('kinos', () => {
   const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyWKtIWZwNizUdny_IM37QoPLaCdwh3OeRtEXXgCid76tTuejEXbUts7k14ms583WCr/exec';
+  const APPS_SCRIPT_URL = window.KEEP_BACKEND_URL;
   const URL_KINOS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=kinos`;
 
   const MESES = [
