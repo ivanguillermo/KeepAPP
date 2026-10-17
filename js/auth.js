@@ -5,7 +5,7 @@
 (function () {
   const CLIENT_ID = "529390183847-jbcnnpkof69dagpe3lti8tj3k6s9jfji.apps.googleusercontent.com";
   // Despliegue de Apps Script que incluye seguridad.gs (acción leerHoja)
-  const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxOjE3Jq5rmOkkeZ67aSUQfeTuaVF3y6G8QTAl1M8_EckB86Ql36ZZ-eZLn6mZFzjRo/exec";
+  const BACKEND_URL = "https://script.google.com/macros/s/AKfycbyWKtIWZwNizUdny_IM37QoPLaCdwh3OeRtEXXgCid76tTuejEXbUts7k14ms583WCr/exec";
   const GVIZ = /docs\.google\.com\/spreadsheets\/d\/[^/]+\/gviz\/tq\?.*?sheet=([^&]+)/;
 
   const fetchOriginal = window.fetch.bind(window);
