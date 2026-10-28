@@ -36,7 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (targetSection) {
       targetSection.classList.remove('hidden');
       const navBtn = document.querySelector(`[data-section="${sectionId}"]`);
+      navBtns.forEach(b => b.classList.remove('bg-gray-100'));
       if (navBtn) {
+        navBtn.classList.add('bg-gray-100');
         topbarTitle.textContent = navBtn.querySelector('span.flex-1').textContent;
       }
     }
