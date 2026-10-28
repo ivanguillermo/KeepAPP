@@ -1,22 +1,16 @@
 {
+  "id": "./index.html",
   "short_name": "KeepAPP",
   "name": "KeepAPP Personal Manager",
+  "lang": "es",
   "icons": [
-    {
-      "src": "./keepApp_logo.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "./keepApp_logo.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
+    { "src": "./keepApp_icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./keepApp_icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./keepApp_icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "start_url": "./index.html",
+  "scope": "./",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
-  "display": "standalone",
-  "orientation": "portrait"
+  "display": "standalone"
 }
