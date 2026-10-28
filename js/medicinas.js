@@ -9,6 +9,18 @@ window.KeepModule('medicinas', () => {
   // URL del Web App de Google Apps Script (Asegúrate de enlazar la tuya o usar la variable global si la tienes)
   const SCRIPT_URL = window.KEEP_BACKEND_URL; 
 
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const MES_CORTO = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+  // "10/10/26" -> "10Oct"  (si el año no es el actual, lo agrega: "10Oct'27")
+  function fechaCorta(s) {
+    const m = String(s || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if (!m) return s || '—';
+    const anio = +m[3] < 100 ? 2000 + +m[3] : +m[3];
+    const sufijo = anio === new Date().getFullYear() ? '' : "'" + String(anio).slice(-2);
+    return `${+m[1]}${MES_CORTO[+m[2] - 1] || ''}${sufijo}`;
+  }
+
   async function cargarMedicinas() {
     try {
       contenedorMedicinas.innerHTML = `<div class="p-4 bg-pastel-rose/40 rounded-2xl border border-rose-100 text-sm text-gray-600">Cargando medicinas...</div>`;
@@ -58,10 +70,10 @@ window.KeepModule('medicinas', () => {
 
       html += `
         <tr class="hover:bg-gray-50/50 transition-colors">
-          <td class="p-3 font-medium text-gray-800">${med.medicina}</td>
+          <td class="p-3 font-medium text-gray-800">${esc(med.medicina)}</td>
           <td class="p-3 text-gray-600">$${med.precio.toFixed(2)}</td>
           <td class="p-3 text-gray-600">${med.cantidad}</td>
-          <td class="p-3 text-gray-600">${med.agota}</td>
+          <td class="p-3 text-gray-600 whitespace-nowrap">${fechaCorta(med.agota)}</td>
           <td class="p-3 text-center">
             <span class="px-2 py-1 rounded-full text-[10px] ${badgeClase}">${med.hoy} días</span>
           </td>
@@ -89,8 +101,8 @@ window.KeepModule('medicinas', () => {
           <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between text-xs">
             <div class="flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-              <span class="font-bold text-gray-800">${med.medicina}</span>
-              <span class="text-gray-500">(Quedan ${med.hoy} días - Agota: ${med.agota})</span>
+              <span class="font-bold text-gray-800">${esc(med.medicina)}</span>
+              <span class="text-gray-500">(Quedan ${med.hoy} días - Agota: ${fechaCorta(med.agota)})</span>
             </div>
             <span class="bg-amber-200 text-amber-800 px-2 py-0.5 rounded-md font-semibold text-[10px]">Comprar pronto</span>
           </div>
@@ -123,7 +135,7 @@ window.KeepModule('medicinas', () => {
     if (modal) modal.remove();
 
     const esEdicion = !!med;
-    const titulo = esEdicion ? `Editar: ${med.medicina}` : 'Agregar Nueva Medicina';
+    const titulo = esEdicion ? `Editar: ${esc(med.medicina)}` : 'Agregar Nueva Medicina';
 
     modal = document.createElement('div');
     modal.id = modalId;
@@ -134,7 +146,7 @@ window.KeepModule('medicinas', () => {
         <form id="form-medicina" class="space-y-3 text-xs">
           <div>
             <label class="block font-medium text-gray-600 mb-1">Nombre Medicina</label>
-            <input type="text" name="medicina" value="${esEdicion ? med.medicina : ''}" required class="w-full p-2.5 border border-gray-200 rounded-xl focus:outline-rose-400">
+            <input type="text" name="medicina" value="${esEdicion ? esc(med.medicina) : ''}" required class="w-full p-2.5 border border-gray-200 rounded-xl focus:outline-rose-400">
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
