@@ -83,6 +83,11 @@
     <!-- Links de Navegación -->
     <nav class="flex-1 overflow-y-auto p-4 space-y-1.5 text-sm font-medium">
       
+      <button data-section="diario" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-indigo/60 transition-colors">
+        <span class="w-2.5 h-2.5 rounded-full bg-fuchsia-400"></span>
+        <span class="flex-1 text-left font-semibold">Diario</span>
+      </button>
+
       <button data-section="benkyou" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-pastel-blue/60 transition-colors">
         <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
         <span class="flex-1 text-left font-semibold">Benkyou</span>
@@ -174,6 +179,8 @@
 
   <!-- Contenedor Principal Dinámico -->
   <main id="main-content" class="flex-1 p-4 lg:p-8 max-w-lg lg:max-w-4xl mx-auto w-full">
+
+    <section id="sec-diario" class="app-section hidden space-y-4"></section>
 
     <section id="sec-benkyou" class="app-section hidden space-y-4">
       <div class="border-l-4 border-sky-300 pl-3">
@@ -396,6 +403,7 @@
   <!-- Scripts Módulos -->
   <script src="js/auth.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/diario.js" onerror="console.warn('Fallo al cargar diario.js')"></script>
   <script src="js/benkyou.js" onerror="console.warn('Fallo al cargar benkyou.js')"></script>
   <script src="js/bbm.js" onerror="console.warn('Fallo al cargar bbm.js')"></script>
   <script src="js/kato.js" onerror="console.warn('Fallo al cargar kato.js')"></script>
