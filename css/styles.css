@@ -20,3 +20,19 @@ html, body {
   background: #E2E8F0;
   border-radius: 9999px;
 }
+
+/* ---------- Escritorio (≥ 1024 px) ---------- */
+@media (min-width: 1024px) {
+  /* Tailwind usa rem: subir la base agranda todo el diseño de forma proporcional */
+  html { font-size: 17px; }
+
+  /* Los textos en px fijos (text-[9px], [10px], [11px]) no escalan solos */
+  [class*="text-[9px]"]  { font-size: 0.62rem !important; }
+  [class*="text-[10px]"] { font-size: 0.68rem !important; }
+  [class*="text-[11px]"] { font-size: 0.76rem !important; }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+
+  /* Menú lateral fijo: que el ítem activo y el hover se noten */
+  #sidebar .nav-btn { cursor: pointer; }
+}
