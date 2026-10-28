@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Sección inicial por defecto
-  navigateTo('tareas');
+  navigateTo('diario');
 });
 
 /**
