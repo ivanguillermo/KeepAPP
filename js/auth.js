@@ -39,7 +39,7 @@
     esperando = new Promise((resolver) => {
       const capa = document.createElement("div");
       capa.style.cssText = "position:fixed;inset:0;z-index:9999;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;font-family:system-ui,sans-serif;text-align:center;padding:24px";
-      capa.innerHTML = '<h2 style="margin:0">KeepAPP</h2><p style="margin:0;color:#666;font-size:14px">Inicia sesión con tu cuenta de Google</p><div id="keep-gbtn"></div>';
+      capa.innerHTML = '<img src="./keepApp_logo_k.png" alt="" style="width:84px;height:84px;object-fit:contain"><h2 style="margin:0">KeepAPP</h2><p style="margin:0;color:#666;font-size:14px">Inicia sesión con tu cuenta de Google</p><div id="keep-gbtn"></div>';
       document.body.appendChild(capa);
       cargarGSI().then(() => {
         google.accounts.id.initialize({
