@@ -1,6 +1,6 @@
 /**
  * js/geld.js - Módulo Geld: Compras, Resumen, Gastos y Gastos Futuros.
- * Lectura vía CSV directo de Sheets (evita problemas de CORS/doGet) y Escritura vía POST.
+ * Lectura de hojas vía auth.js (backend seguro) y escritura vía POST con respuesta verificada.
  */
 KeepModule('geld', () => {
   const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
@@ -31,15 +31,26 @@ KeepModule('geld', () => {
     }
   }
 
-  // Helper para llamadas POST a Apps Script
-  async function postToAppsScript(payload) {
-    return fetch(APPS_SCRIPT_URL, {
+  // POST a Apps Script leyendo la respuesta real. Lanza error si el servidor no responde 'success'.
+  async function postJSON(payload) {
+    const r = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
     });
+    const j = await r.json();
+    if (j.status !== 'success') throw new Error(j.message || 'Error del servidor');
+    return j;
   }
+
+  // Igual que postJSON pero avisa con alert y devuelve true/false (para los botones simples)
+  async function postToAppsScript(payload) {
+    try { await postJSON(payload); return true; }
+    catch (err) { alert('No se pudo guardar: ' + err.message); return false; }
+  }
+
+  // Escapar texto que viene del Sheet antes de meterlo en innerHTML
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   // Normalizar nombres de claves del CSV para evitar fallos por mayúsculas o espacios
   function normalizarObjeto(obj) {
@@ -53,6 +64,61 @@ KeepModule('geld', () => {
   // -------------------------------------------------------------
   // 1. SUBSECCIÓN COMPRAS
   // -------------------------------------------------------------
+  let catComprasSel = 'Todas';
+
+  function abrirEditorCompra(p, categorias, alTerminar) {
+    const nuevo = !p;
+    const m = document.createElement('div');
+    m.className = 'fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4';
+    const campo = 'w-full bg-gray-50 text-xs p-2 rounded-xl border border-gray-200 outline-none focus:border-emerald-400';
+    const lbl = 'block text-[10px] font-bold text-gray-400 uppercase mb-1';
+    m.innerHTML = `
+      <form class="bg-white rounded-2xl w-full max-w-sm p-5 space-y-3 text-xs shadow-xl">
+        <h3 class="text-sm font-bold text-gray-800">${nuevo ? 'Nuevo artículo' : 'Editar artículo'}</h3>
+        <div><label class="${lbl}">Nombre</label>
+          <input name="producto" required value="${esc(p ? p.producto : '')}" class="${campo}"></div>
+        <div class="grid grid-cols-2 gap-2">
+          <div><label class="${lbl}">Categoría</label>
+            <input name="categoria" list="dl-cat-compras" value="${esc(p ? p.categoria : '')}" class="${campo}">
+            <datalist id="dl-cat-compras">${categorias.filter(c => c !== 'Todas').map(c => `<option value="${esc(c)}">`).join('')}</datalist></div>
+          <div><label class="${lbl}">Precio USD</label>
+            <input name="precio" type="number" step="0.01" min="0" required value="${esc(p ? p.precioUsd : '')}" class="${campo}"></div>
+        </div>
+        <p class="msg text-[11px] text-center text-red-500 hidden"></p>
+        <div class="flex items-center gap-2 pt-1">
+          ${nuevo ? '' : '<button type="button" data-borrar class="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 font-bold">🗑 Borrar</button>'}
+          <span class="flex-1"></span>
+          <button type="button" data-x class="px-3 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold">Cancelar</button>
+          <button class="px-3 py-2 rounded-xl bg-emerald-600 text-white font-bold">Guardar</button>
+        </div>
+      </form>`;
+    document.body.appendChild(m);
+
+    const form = m.querySelector('form');
+    const msg = m.querySelector('.msg');
+    const error = (t) => { msg.textContent = t; msg.classList.remove('hidden'); };
+    const cerrar = () => m.remove();
+    m.addEventListener('click', (e) => { if (e.target === m) cerrar(); });
+    m.querySelector('[data-x]').onclick = cerrar;
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const f = new FormData(form);
+      const payload = nuevo
+        ? { action: 'actualizarPrecioCompra', producto: f.get('producto').trim(), categoria: (f.get('categoria') || '').trim() || 'Otros', precio_usd: parseFloat(f.get('precio')) }
+        : { action: 'editarProductoCompra', producto_original: p.producto, producto: f.get('producto').trim(), categoria: (f.get('categoria') || '').trim() || 'Otros', precio_usd: parseFloat(f.get('precio')) };
+      try { await postJSON(payload); cerrar(); alTerminar(); }
+      catch (err) { error(err.message); }
+    };
+
+    const btnBorrar = m.querySelector('[data-borrar]');
+    if (btnBorrar) btnBorrar.onclick = async () => {
+      if (!confirm(`¿Borrar "${p.producto}" de la lista de compras?`)) return;
+      try { await postJSON({ action: 'eliminarProductoCompra', producto: p.producto }); cerrar(); alTerminar(); }
+      catch (err) { error(err.message); }
+    };
+  }
+
   function setupCompras(data, container) {
     if (!container) return;
 
@@ -68,21 +134,28 @@ KeepModule('geld', () => {
         };
       })
       .filter(p => p.producto.trim() !== '');
+    productos.forEach((p, i) => { p.i = i; });
 
     const categorias = ['Todas', ...new Set(productos.map(p => p.categoria).filter(Boolean))];
-    let catSeleccionada = 'Todas';
+    if (!categorias.includes(catComprasSel)) catComprasSel = 'Todas';
+
+    async function refrescar() {
+      const dataRefresh = await fetchCSV(URL_COMPRAS);
+      setupCompras(dataRefresh, container);
+    }
 
     function renderView() {
-      const filtrados = productos.filter(p => catSeleccionada === 'Todas' || p.categoria === catSeleccionada);
-      const optsCat = categorias.map(c => `<option value="${c}" ${c === catSeleccionada ? 'selected' : ''}>${c}</option>`).join('');
+      const filtrados = productos.filter(p => catComprasSel === 'Todas' || p.categoria === catComprasSel);
+      const optsCat = categorias.map(c => `<option value="${esc(c)}" ${c === catComprasSel ? 'selected' : ''}>${esc(c)}</option>`).join('');
 
       let html = `
         <div class="space-y-4">
-          <div class="bg-white p-3 rounded-2xl border border-emerald-100 shadow-xs flex items-center justify-between">
+          <div class="bg-white p-3 rounded-2xl border border-emerald-100 shadow-xs flex items-center justify-between gap-2">
             <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Categoría:</span>
-            <select id="select-cat-compras" class="bg-emerald-50 text-emerald-800 text-xs font-bold py-1.5 px-3 rounded-xl border border-emerald-200 outline-none">
+            <select id="select-cat-compras" class="bg-emerald-50 text-emerald-800 text-xs font-bold py-1.5 px-3 rounded-xl border border-emerald-200 outline-none flex-1 min-w-0">
               ${optsCat}
             </select>
+            <button id="btn-nuevo-compra" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl shrink-0">+ Nuevo</button>
           </div>
 
           <div class="bg-white rounded-2xl p-4 shadow-xs border border-emerald-100 divide-y divide-gray-100 max-h-[60vh] overflow-y-auto">
@@ -91,22 +164,19 @@ KeepModule('geld', () => {
       if (filtrados.length === 0) {
         html += `<p class="text-xs text-gray-400 py-4 text-center">No hay productos registrados.</p>`;
       } else {
-        filtrados.forEach((item, idx) => {
+        filtrados.forEach((item) => {
           html += `
             <div class="py-2.5 flex items-center justify-between gap-2">
               <div class="min-w-0 flex-1">
-                <p class="text-xs font-semibold text-gray-800 truncate">${item.producto}</p>
-                <p class="text-[10px] text-gray-400">${item.unidad ? item.unidad + ' • ' : ''}${item.categoria}</p>
+                <p class="text-xs font-semibold text-gray-800 truncate">${esc(item.producto)}</p>
+                <p class="text-[10px] text-gray-400">${item.unidad ? esc(item.unidad) + ' • ' : ''}${esc(item.categoria)}</p>
               </div>
               <div class="text-right shrink-0 flex items-center gap-2">
                 <div>
-                  <p class="text-xs font-bold text-emerald-700">$${item.precioUsd}</p>
-                  <p class="text-[10px] text-gray-400">Bs. ${item.precioVes}</p>
+                  <p class="text-xs font-bold text-emerald-700">$${esc(item.precioUsd)}</p>
+                  <p class="text-[10px] text-gray-400">Bs. ${esc(item.precioVes)}</p>
                 </div>
-                <button class="btn-editar-precio p-1.5 bg-gray-100 hover:bg-emerald-100 text-gray-600 hover:text-emerald-800 rounded-lg text-xs" 
-                        data-producto="${item.producto}" data-categoria="${item.categoria}" data-precio="${item.precioUsd}">
-                  ✏️
-                </button>
+                <button class="btn-editar-compra p-1.5 bg-gray-100 hover:bg-emerald-100 text-gray-600 hover:text-emerald-800 rounded-lg text-xs" data-i="${item.i}" title="Editar">✏️</button>
               </div>
             </div>
           `;
@@ -116,35 +186,13 @@ KeepModule('geld', () => {
       html += `</div></div>`;
       container.innerHTML = html;
 
-      const sel = container.querySelector('#select-cat-compras');
-      if (sel) {
-        sel.addEventListener('change', (e) => {
-          catSeleccionada = e.target.value;
-          renderView();
-        });
-      }
-
-      container.querySelectorAll('.btn-editar-precio').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const prodName = btn.getAttribute('data-producto');
-          const catName = btn.getAttribute('data-categoria');
-          const precioActual = btn.getAttribute('data-precio');
-
-          const nuevoPrecio = prompt(`Actualizar precio en USD para "${prodName}":`, precioActual);
-          if (nuevoPrecio !== null && !isNaN(parseFloat(nuevoPrecio))) {
-            btn.textContent = '⌛';
-            await postToAppsScript({
-              action: 'actualizarPrecioCompra',
-              producto: prodName,
-              categoria: catName,
-              precio_usd: parseFloat(nuevoPrecio)
-            });
-            setTimeout(async () => {
-              const dataRefresh = await fetchCSV(URL_COMPRAS);
-              setupCompras(dataRefresh, container);
-            }, 1000);
-          }
-        });
+      container.querySelector('#select-cat-compras').addEventListener('change', (e) => {
+        catComprasSel = e.target.value;
+        renderView();
+      });
+      container.querySelector('#btn-nuevo-compra').addEventListener('click', () => abrirEditorCompra(null, categorias, refrescar));
+      container.querySelectorAll('.btn-editar-compra').forEach(btn => {
+        btn.addEventListener('click', () => abrirEditorCompra(productos[Number(btn.dataset.i)], categorias, refrescar));
       });
     }
 
@@ -314,15 +362,15 @@ KeepModule('geld', () => {
             <div class="p-2.5 bg-gray-50 rounded-xl border border-gray-100 flex justify-between items-center text-xs gap-2">
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1.5">
-                  <span class="text-[10px] font-mono text-gray-400 font-bold">${g.id}</span>
-                  <span class="font-bold text-gray-800 truncate">${g.descripcion}</span>
-                  <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">${g.categoria}</span>
+                  <span class="text-[10px] font-mono text-gray-400 font-bold">${esc(g.id)}</span>
+                  <span class="font-bold text-gray-800 truncate">${esc(g.descripcion)}</span>
+                  <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">${esc(g.categoria)}</span>
                 </div>
-                <p class="text-[10px] text-gray-400 mt-0.5">${g.fecha} • ${g.lugar} • ${g.metodo}</p>
+                <p class="text-[10px] text-gray-400 mt-0.5">${esc(g.fecha)} • ${esc(g.lugar)} • ${esc(g.metodo)}</p>
               </div>
               <div class="flex items-center gap-2 shrink-0">
                 <p class="font-black text-rose-600">$${g.monto.toFixed(2)}</p>
-                <button class="btn-borrar-gasto text-red-400 hover:text-red-600 text-xs font-bold p-1" data-id="${g.id}">✕</button>
+                <button class="btn-borrar-gasto text-red-400 hover:text-red-600 text-xs font-bold p-1" data-id="${esc(g.id)}">✕</button>
               </div>
             </div>
           `;
@@ -369,14 +417,17 @@ KeepModule('geld', () => {
             metodo: document.getElementById('gasto-metodo').value
           };
 
-          await postToAppsScript(nuevoGasto);
+          const ok = await postToAppsScript(nuevoGasto);
+          if (!ok) {
+            gastoStatus.textContent = "No se guardó. Intenta de nuevo.";
+            gastoStatus.className = "text-[11px] text-center text-red-500 font-bold block";
+            return;
+          }
 
           gastoStatus.textContent = "¡Registrado!";
           gastoStatus.className = "text-[11px] text-center text-emerald-600 font-bold block";
 
-          setTimeout(() => {
-            renderView();
-          }, 1200);
+          setTimeout(() => { renderView(); }, 900);
         });
       }
 
@@ -387,7 +438,7 @@ KeepModule('geld', () => {
           if (confirm(`¿Seguro que deseas eliminar el gasto ${gastoId}?`)) {
             btn.textContent = '...';
             await postToAppsScript({ action: 'eliminarGasto', id: gastoId });
-            setTimeout(() => renderView(), 1000);
+            renderView();
           }
         });
       });
@@ -467,16 +518,16 @@ KeepModule('geld', () => {
             <div class="p-2.5 ${esPago ? 'bg-emerald-50 border-emerald-100 opacity-60' : 'bg-gray-50 border-gray-100'} rounded-xl border flex justify-between items-center text-xs gap-2">
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1.5">
-                  <span class="text-[10px] font-mono text-gray-400 font-bold">${item.id}</span>
-                  <span class="font-bold text-gray-800 truncate ${esPago ? 'line-through' : ''}">${item.gasto}</span>
-                  <span class="text-[9px] bg-rose-100 text-rose-800 font-bold px-1.5 py-0.2 rounded">${item.categoria}</span>
+                  <span class="text-[10px] font-mono text-gray-400 font-bold">${esc(item.id)}</span>
+                  <span class="font-bold text-gray-800 truncate ${esPago ? 'line-through' : ''}">${esc(item.gasto)}</span>
+                  <span class="text-[9px] bg-rose-100 text-rose-800 font-bold px-1.5 py-0.5 rounded">${esc(item.categoria)}</span>
                 </div>
-                <p class="text-[10px] text-gray-400 mt-0.5">Fecha tope: ${item.fecha_tope || 'N/A'}</p>
+                <p class="text-[10px] text-gray-400 mt-0.5">Fecha tope: ${esc(item.fecha_tope || 'N/A')}</p>
               </div>
               <div class="text-right shrink-0 flex items-center gap-2">
                 <span class="font-black text-rose-700">$${item.valor.toFixed(2)}</span>
                 <button class="btn-toggle-estado-futuro px-2 py-1 rounded-lg text-[10px] font-bold ${esPago ? 'bg-emerald-200 text-emerald-800' : 'bg-amber-100 text-amber-800'}"
-                        data-id="${item.id}" data-estado="${item.estado}">
+                        data-id="${esc(item.id)}" data-estado="${esc(item.estado)}">
                   ${esPago ? 'PAGO' : 'PENDIENTE'}
                 </button>
               </div>
@@ -521,7 +572,7 @@ KeepModule('geld', () => {
           };
 
           await postToAppsScript(nuevoFuturo);
-          setTimeout(() => renderView(), 1000);
+          renderView();
         });
       }
 
@@ -538,7 +589,7 @@ KeepModule('geld', () => {
             id: itemID,
             estado: nuevoEstado
           });
-          setTimeout(() => renderView(), 1000);
+          renderView();
         });
       });
     }
