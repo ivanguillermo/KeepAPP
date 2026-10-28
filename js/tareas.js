@@ -1,5 +1,5 @@
 KeepModule('tareas', () => {
-  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyWKtIWZwNizUdny_IM37QoPLaCdwh3OeRtEXXgCid76tTuejEXbUts7k14ms583WCr/exec"; // el mismo backend seguro que usan los demás módulos
+  const APPS_SCRIPT_URL = window.KEEP_BACKEND_URL; // el mismo backend seguro que usan los demás módulos
 
   const container = document.getElementById('sec-tareas');
   if (!container) return;
