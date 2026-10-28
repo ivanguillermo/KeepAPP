@@ -1,10 +1,11 @@
+
 const VERSION = 'keepapp-v4';
 
 const LOCAL = [
   './', './index.html', './manifest.json',
   './keepApp_logo.png', './keepApp_logo_k.png', './keepApp_icon-192.png', './keepApp_icon-512.png', './keepApp_icon-maskable-512.png',
   './css/styles.css',
-  './js/auth.js', './js/app.js',
+  './js/auth.js', './js/app.js', './js/diario.js',
   './js/benkyou.js', './js/bbm.js', './js/kato.js', './js/goals.js', './js/tareas.js', './js/geld.js',
   './js/bucher.js', './js/kinos.js', './js/supertags.js', './js/agenda.js', './js/links.js', './js/dox.js', './js/medicinas.js'
 ];
