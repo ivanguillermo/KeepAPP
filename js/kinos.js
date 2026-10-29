@@ -1,6 +1,9 @@
 /**
  * js/kinos.js - Módulo KINOS
- * "Por ver" tiene varias listas (columnas del Sheet): por_ver (general), aleman, frances, nihon.
+ * Hoja "kinos", columnas (el orden importa, los nombres no distinguen mayúsculas ni tildes):
+ *   por_ver | categoria | link | aleman | link | frances | link | japones | link | enero | (link) | febrero | (link) ...
+ * Cada "link" va justo a la derecha de su lista. Los meses pueden llevar su propia columna "link" (opcional).
+ * Se lee por posición, así que no importa que "link" se repita.
  */
 KeepModule('kinos', () => {
   const SHEET_ID = '1jw9T6byYopO1uOX3iDTtD_9DFvl_2LaC-tT-Qgsu7kw';
@@ -12,33 +15,32 @@ KeepModule('kinos', () => {
     'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
   ];
 
-  // id = nombre de la columna en la hoja "kinos"
+  // cols = nombres posibles del encabezado en la hoja
   const LISTAS = [
-    { id: 'por_ver', etiqueta: 'General' },
-    { id: 'aleman', etiqueta: 'Alemán' },
-    { id: 'frances', etiqueta: 'Francés' },
-    { id: 'nihon', etiqueta: 'Nihon' }
+    { id: 'por_ver', etiqueta: 'General', cols: ['por_ver'] },
+    { id: 'aleman', etiqueta: 'Alemán', cols: ['aleman'] },
+    { id: 'frances', etiqueta: 'Francés', cols: ['frances'] },
+    { id: 'japones', etiqueta: 'Nihon', cols: ['japones', 'nihon'] }
   ];
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const norm = s => String(s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 
-  // Lee una columna sin importar mayúsculas ni tildes en el encabezado
-  const col = (r, nombre) => {
-    for (const k in r) if (norm(k) === nombre) return String(r[k] ?? '');
-    return '';
-  };
-
   function fetchCSV(url) {
     return new Promise((resolve, reject) => {
       Papa.parse(url, {
         download: true,
-        header: true,
-        skipEmptyLines: false, // Mantener para alinear filas
+        header: false,          // por posición: "link" aparece varias veces
+        skipEmptyLines: false,  // mantener para alinear filas
         complete: (res) => resolve(res.data),
         error: (err) => reject(err)
       });
     });
+  }
+
+  function reproducir(titulo, link, modo) {
+    if (window.KeepPlayer) KeepPlayer.abrir({ titulo, url: link, modo: modo || 'video' });
+    else window.open(link, '_blank', 'noopener');
   }
 
   async function renderKinos(container) {
@@ -51,17 +53,35 @@ KeepModule('kinos', () => {
       console.error('Error cargando Kinos:', e);
     }
 
+    const H = (rows[0] || []).map(norm);
+    const cuerpo = rows.slice(1);
+    const celda = (r, c) => (c >= 0 && c < r.length) ? String(r[c] ?? '').trim() : '';
+
+    // Columna "link" que acompaña a una lista (se salta "categoria")
+    const colLink = (c) => {
+      if (c < 0) return -1;
+      for (let j = c + 1; j <= c + 2 && j < H.length; j++) {
+        if (H[j] === 'link') return j;
+        if (H[j] !== 'categoria') break;
+      }
+      return -1;
+    };
+
     const mesActualNombre = MESES[new Date().getMonth()];
 
     // Por ver: una lista por columna
     const porVer = {};
     LISTAS.forEach(l => {
+      const c = l.cols.map(n => H.indexOf(n)).find(i => i >= 0);
+      l.col = c === undefined ? -1 : c;
+      l.nombreCol = l.col >= 0 ? H[l.col] : l.cols[0];   // lo que se envía al backend como "origen"
+      const cCat = (l.col >= 0 && H[l.col + 1] === 'categoria') ? l.col + 1 : -1;
+      const cLink = colLink(l.col);
       porVer[l.id] = [];
-      rows.forEach(r => {
-        const titulo = col(r, l.id).trim();
+      cuerpo.forEach(r => {
+        const titulo = celda(r, l.col);
         if (titulo === '') return;
-        const categoria = l.id === 'por_ver' ? (col(r, 'categoria').trim() || '') : '';
-        porVer[l.id].push({ titulo, categoria });
+        porVer[l.id].push({ titulo, categoria: celda(r, cCat), link: celda(r, cLink) });
       });
     });
     const totalPorVer = () => LISTAS.reduce((n, l) => n + porVer[l.id].length, 0);
@@ -69,16 +89,19 @@ KeepModule('kinos', () => {
     // Vistas por mes
     const vistasPorMes = {};
     MESES.forEach(m => {
+      const c = H.indexOf(m), cLink = colLink(c);
       vistasPorMes[m] = [];
-      rows.forEach(r => {
-        const v = col(r, m).trim();
-        if (v !== '') vistasPorMes[m].push(v);
+      cuerpo.forEach(r => {
+        const titulo = celda(r, c);
+        if (titulo !== '') vistasPorMes[m].push({ titulo, link: celda(r, cLink) });
       });
     });
 
     let subseccionActiva = 'por_ver';
     let listaActiva = 'por_ver';
     let mesFiltroSeleccionado = mesActualNombre;
+
+    const btnPlay = (attr, i) => `<button ${attr}="${i}" class="btn-play shrink-0 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 text-[11px] font-bold py-1.5 px-3 rounded-xl transition-all" title="Reproducir">▶ Ver</button>`;
 
     function renderView() {
       let html = `
@@ -123,6 +146,7 @@ KeepModule('kinos', () => {
                   <p class="text-xs font-bold text-gray-800 truncate">${esc(p.titulo)}</p>
                   ${p.categoria ? `<span class="inline-block mt-0.5 text-[9px] font-extrabold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded uppercase">${esc(p.categoria)}</span>` : ''}
                 </div>
+                ${p.link ? btnPlay('data-pv', i) : ''}
                 <button data-i="${i}" class="btn-marcar-visto shrink-0 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 text-[11px] font-bold py-1.5 px-3 rounded-xl transition-all">
                   ✓ Visto
                 </button>
@@ -155,11 +179,12 @@ KeepModule('kinos', () => {
         if (pelisDelMes.length === 0) {
           html += `<p class="text-xs text-gray-400 text-center py-6">No hay películas registradas en ${mesFiltroSeleccionado}.</p>`;
         } else {
-          pelisDelMes.forEach(p => {
+          pelisDelMes.forEach((p, i) => {
             html += `
-              <div class="p-2.5 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between text-xs">
-                <p class="font-bold text-gray-800 truncate">${esc(p)}</p>
-                <span class="text-[10px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">✓ Visto</span>
+              <div class="p-2.5 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between gap-2 text-xs">
+                <p class="font-bold text-gray-800 truncate flex-1 min-w-0">${esc(p.titulo)}</p>
+                ${p.link ? btnPlay('data-vm', i) : ''}
+                <span class="shrink-0 text-[10px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">✓ Visto</span>
               </div>
             `;
           });
@@ -193,15 +218,26 @@ KeepModule('kinos', () => {
       container.querySelector('#select-mes-filtro')?.addEventListener('change', (e) => { mesFiltroSeleccionado = e.target.value; renderView(); });
       container.querySelectorAll('.btn-lista').forEach(b => b.addEventListener('click', () => { listaActiva = b.dataset.lista; renderView(); }));
 
+      // Reproducir en el modal interno
+      container.querySelectorAll('[data-pv]').forEach(b => b.addEventListener('click', () => {
+        const p = porVer[listaActiva][Number(b.dataset.pv)];
+        reproducir(p.titulo, p.link);
+      }));
+      container.querySelectorAll('[data-vm]').forEach(b => b.addEventListener('click', () => {
+        const p = vistasPorMes[mesFiltroSeleccionado][Number(b.dataset.vm)];
+        reproducir(p.titulo, p.link);
+      }));
+
       const modal = container.querySelector('#modal-marcar-mes');
       const modalTitulo = container.querySelector('#modal-pelicula-titulo');
       const modalSelect = container.querySelector('#modal-select-mes');
-      let seleccion = null; // { titulo, origen }
+      let seleccion = null; // { titulo, link, origen }
 
       container.querySelectorAll('.btn-marcar-visto').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const p = porVer[listaActiva][Number(e.currentTarget.dataset.i)];
-          seleccion = { titulo: p.titulo, origen: listaActiva };
+          const lista = LISTAS.find(l => l.id === listaActiva);
+          seleccion = { titulo: p.titulo, link: p.link, origen: lista.nombreCol };
           modalTitulo.textContent = p.titulo;
           modalSelect.value = mesActualNombre;
           modal.classList.remove('hidden');
@@ -212,16 +248,16 @@ KeepModule('kinos', () => {
 
       container.querySelector('#btn-modal-confirmar')?.addEventListener('click', async () => {
         const mesElegido = modalSelect.value;
-        const { titulo, origen } = seleccion;
+        const { titulo, link, origen } = seleccion;
         modal.classList.add('hidden');
 
         // Se mueve al instante en pantalla...
-        const idx = porVer[origen].findIndex(p => p.titulo === titulo);
-        if (idx !== -1) porVer[origen].splice(idx, 1);
-        vistasPorMes[mesElegido].push(titulo);
+        const idx = porVer[listaActiva].findIndex(p => p.titulo === titulo);
+        if (idx !== -1) porVer[listaActiva].splice(idx, 1);
+        vistasPorMes[mesElegido].push({ titulo, link });
         renderView();
 
-        // ...y se guarda en el Sheet; si falla, se avisa y se recarga lo real
+        // ...y se guarda en el Sheet (el servidor mueve también el link); si falla, se avisa y se recarga lo real
         try {
           const res = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
