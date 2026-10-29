@@ -1,11 +1,17 @@
-
+/**
+ * sw.js - Service Worker para KeepAPP
+ * - Archivos propios: "red primero" (los cambios que subas llegan solos); si no hay red o tarda > 3 s, usa la copia guardada.
+ * - Librerías externas (Tailwind, PapaParse): "caché primero", así la app abre sin conexión.
+ * - Google (login, Apps Script, Drive, Sheets) nunca se toca.
+ * Al cambiar la lista de archivos, sube el número de VERSION.
+ */
 const VERSION = 'keepapp-v4';
 
 const LOCAL = [
   './', './index.html', './manifest.json',
   './keepApp_logo.png', './keepApp_logo_k.png', './keepApp_icon-192.png', './keepApp_icon-512.png', './keepApp_icon-maskable-512.png',
   './css/styles.css',
-  './js/auth.js', './js/app.js', './js/diario.js',
+  './js/auth.js', './js/app.js', './js/diario.js', './js/reproductor.js',
   './js/benkyou.js', './js/bbm.js', './js/kato.js', './js/goals.js', './js/tareas.js', './js/geld.js',
   './js/bucher.js', './js/kinos.js', './js/supertags.js', './js/agenda.js', './js/links.js', './js/dox.js', './js/medicinas.js'
 ];
