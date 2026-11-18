@@ -6,7 +6,7 @@ KeepModule('kato', () => {
   const API = window.KEEP_BACKEND_URL; // backend seguro (definido en auth.js)
   const URL_KATO_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=kato`;
 
-  const IDIOMAS = ['Aleman', 'Frances', 'Japones', 'Latin'];
+  const IDIOMAS = ['Aleman', 'Frances', 'Japones', 'Latin', 'Schach'];
   let idiomaActual = 'Aleman';
 
   function fetchCSV(url) {
