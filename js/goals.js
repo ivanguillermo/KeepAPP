@@ -135,7 +135,7 @@ KeepModule('goals', () => {
 
     let mesSeleccionado = columnasMeses.includes(mesActualNombre) 
       ? mesActualNombre 
-      : (columnasMeses[0] || 'Septiembre');
+      : (columnasMeses[0] || 'Noviembre');
 
     let metasOcultas = new Set();
 
